@@ -1,0 +1,229 @@
+<?php echo $this->render('layout/titulo') ?>
+<?php
+$form = $this->form;
+$form->prepare();
+$form->setAttributes(array(
+    'action' => $this->url.$this->lin.'a/'.$this->id,
+    'method' => 'post',
+    'id'     => 'formGuaradar'
+));
+// Get the form label plugin
+$formLabel = $this->plugin('formLabel');
+// Abriendo etiqueta del formulario
+echo $this->form()->openTag($form);
+?>
+<div class="row">    
+  <div class="col-sm-4">Empleado:<br />
+  <?php
+    $select = $form->get('idEmp');
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+  ?>
+ </div>
+ <div class="col-sm-2">Tipo de prestamo:<br />
+  <?php
+    $select = $form->get('idTpres')->setAttribute("id","idTpres");
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+  ?>    
+ </div>
+ <div class="col-sm-2">Estado del documento:<br />
+  <?php
+    $select = $form->get('estado');
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+  ?>    
+ </div>
+</div> 
+<br />
+<div class="row">
+  <div class="col-sm-2">Documento de referencia:<br />  
+   <?php
+    $name = $form->get('nombre');
+    echo $this->formInput($name);
+    echo $this->formElementErrors($name);
+  ?>
+ </div>
+ <div class="col-sm-2">Fecha de documento:<br />  
+  <?php
+    $name = $form->get('fecDoc');
+    echo $this->formInput($name);
+    echo $this->formElementErrors($name);?>
+  </div>
+</div>
+<hr />
+</table>
+<hr />
+<table  class="table table-striped table-bordered table-hover" >
+<tr> 
+  <th>Nomina</th>    
+  <th>Valor tope</th>
+  <th>Numero cuota</th>
+  <th>Valor cuota</th>
+</tr>
+<?php 
+$valorT = 0;$cuotaT = 0;
+foreach ($this->datTnom as $dato){ ?>
+<tr> 
+    <td><?php echo $dato['nomTnom']?></td>
+    <td>
+      <?php
+         $name = $form->get('numero')->setAttribute("id",'valor'.$dato['idTnom'])
+                                    ->setAttribute("name",'valor'.$dato['idTnom'])
+                                    ->setAttribute("value",$dato['valor']);
+        echo $this->formInput($name);
+        echo $this->formElementErrors($name);
+      ?>                
+    </td>
+    <td>
+      <?php
+
+         $name = $form->get('ncuotas')->setAttribute("id",'cuotas'.$dato['idTnom'])
+                                    ->setAttribute("name",'cuotas'.$dato['idTnom'])
+                                    ->setAttribute("value",$dato['cuotas']);
+        echo $this->formInput($name);
+        echo $this->formElementErrors($name);      
+
+      ?>                                
+    </td>
+    <td>
+    <?php
+       $name = $form->get('vcuotas')->setAttribute("id",'vcuotas'.$dato['idTnom'])
+                                    ->setAttribute("value", $dato['valCuota'])
+                                    ->setAttribute("name",'vcuotas'.$dato['idTnom'])
+                                    ->setAttribute("readOnly",true);
+       echo $this->formInput($name);
+       echo $this->formElementErrors($name);
+    ?>                
+    </td>
+</tr>
+<?php 
+$valorT = $valorT + $dato['valor'];
+$cuotaT = $cuotaT + $dato['cuotas'];
+}?>
+
+<tr> 
+    <td><strong>TOTAL</strong></td>
+    <td><strong>
+      <?php echo number_format( $valorT ) ?>                
+        </strong>      
+    </td>
+    <td>
+<strong>
+      <?php echo number_format( $cuotaT ) ?>                
+        </strong>      
+    </td>
+    <td>
+
+    </td>
+</tr>
+
+</table>
+<hr />
+<div class="control-group">
+    <?php echo ($this->formRow($form->get('comen'))); ?>
+</div>  
+
+<div class="control-group">    
+<?php    
+    $name = $form->get('id'); // Id del prestamo
+    echo $this->formInput($name);    
+?>    
+<?php    
+  $name = $form->get('id'); // Id del grupo de empleado
+  echo $this->formInput($name);    
+?>    
+</div>
+<div class="form-actions">    
+  <?php echo $this->formElement($form->get('send')) ?>
+</div>    
+<?php echo $this->form()->closeTag() ?>
+
+<?php echo $this->render('layout/iregresar') ?>    
+
+<!-- VALIDACION PERIODO ABIERTO SEGUN GRUPO Y TIPO DE NOMINA -->
+<div id="resultado"></div>
+<script>         
+//// Buscar fecha del periodo /////
+$( "#idEmp" ).change(function(){ 
+   var a = $("#idTpres").val(); 
+   var b = $("#idEmp").val(); 
+   // Valdiar periodo
+   var parametros = {
+       "idTpres" : a,                
+       "idEmp"   : b,                
+   }; 
+     $.ajax({
+        data:  parametros,
+        url:   '<?php echo $this->basePath() ?><?php echo $this->lin?>g',
+        type:  'post',
+        beforeSend: function () {
+           $("#resultado").html('<h3 class="header smaller lighter grey"><i class="icon-spinner icon-spin orange bigger-125"></i></h3>Por favor espere...');
+        },                
+        success:  function (response) {
+           $("#resultado").html(response);  
+      }
+   });          
+});
+
+$( "#idTpres" ).change(function(){ 
+   var a = $("#idTpres").val(); 
+   var b = $("#idEmp").val(); 
+   // Valdiar periodo
+   var parametros = {
+       "idTpres" : a,                
+       "idEmp"   : b,                
+   }; 
+     $.ajax({
+        data:  parametros,
+        url:   '<?php echo $this->basePath() ?><?php echo $this->lin?>g',
+        type:  'post',
+        beforeSend: function () {
+           $("#resultado").html('<h3 class="header smaller lighter grey"><i class="icon-spinner icon-spin orange bigger-125"></i></h3>Por favor espere...');
+        },                
+        success:  function (response) {
+           $("#resultado").html(response);  
+      }
+   });       
+    
+});
+
+$( "#formGuaradar" ).submit(function( event ) {
+
+   var verPer = $("#verPer").val(); 
+
+   if ( verPer == 1  ) // Si la fecha del sistema es menor que la fecha de inicio del periodo activo
+   {
+      alert('No se puede guardar el documento, la fecha del sistema es menor a la del periodo activo');
+      return false;
+   }
+
+});
+
+$(function (){   
+   var a = $("#fechaSis").val(); 
+    
+//   $('#valor').number( true, 0 );
+//   $('#vcuotas').number( true, 0 );
+   
+   $('#valor').focusout(function(){  
+     var valor = $("#valor").val();
+     var cuotas = $("#cuotas").val();
+     
+     $("#vcuotas").val(valor/cuotas);
+
+    });
+
+   $('#cuotas').change(function(){  
+     var valor = $("#valor").val();
+     var cuotas = $("#cuotas").val();     
+     $("#vcuotas").val(valor/cuotas);
+    });     
+})
+ 
+</script> 
+
+
+
+
+

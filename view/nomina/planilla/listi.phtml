@@ -1,0 +1,83 @@
+<?php echo $this->render('layout/titulo') ?>
+
+<?php
+$form = $this->form;
+$form->prepare();
+
+$form->setAttributes(array(
+    'action' => $this->url.$this->lin.'i',
+    'method' => 'post'
+));
+// Get the form label plugin
+$formLabel = $this->plugin('formLabel');
+// Abriendo etiqueta del formulario
+echo $this->form()->openTag($form);
+?>
+<div class="control-group">    
+<?php    
+    $name = $form->get('id');
+    echo $this->formInput($name);    
+?>    
+</div>
+<?php echo $this->form()->closeTag() ?>
+
+<?php echo $this->render('layout/tabla_c') ?>
+
+    <?php foreach ($this->datos as $dato){ ?>
+        <tr>
+            <td><?php echo $dato["CedEmp"].' - '.$dato["nomEmp"].' '.$dato["apellido"]; ?></td>            
+            
+            <td><?php echo $dato["diasSalud"]; ?></td>            
+            <td><?php echo $dato["diasPension"]; ?></td>          
+            <td><?php echo $dato["diasRiesgos"]; ?></td>                                  
+            
+            <td><?php echo number_format($dato["ibcSalud"]); ?></td>            
+            <td><?php echo number_format($dato["aporSalud"]); ?></td>          
+            
+            <td><?php echo number_format($dato["ibcPension"]); ?></td>                                  
+            <td><?php echo number_format($dato["aporPension"]); ?></td>                                              
+            
+            <td><?php echo number_format($dato["aporSolidaridad"]); ?></td>                                  
+            <td><?php echo number_format($dato["ibcRiesgos"]); ?></td>                                                          
+            
+            <td><?php echo number_format($dato["tarifaArl"],3); ?></td>                                  
+            <td><?php echo number_format($dato["aporRiesgos"]); ?></td>                                                                      
+            
+            <td><?php echo number_format($dato["ibcCaja"]); ?></td>                                  
+            <td><?php echo number_format($dato["aporCaja"]); ?></td>                                                                      
+            
+            <td><?php echo number_format($dato["aporSena"]); ?></td>                                  
+            <td><?php echo number_format($dato["aporIcbf"]); ?></td>                                                                                  
+            
+            <td><?php 
+            if ($dato["nInca"]!='0')
+                echo $dato["nInca"]; ?></td>                                  
+            <td><?php 
+            if ($dato["nVaca"]!='0')
+                echo $dato["nVaca"]; ?></td>                                                                                              
+            <td><?php 
+            if ($dato["nAus"]!='0')            
+                echo $dato["nAus"]; ?></td>                                  
+            <td><?php 
+            if ($dato["nRetiro"]!='0')            
+               echo $dato["nRetiro"]; ?></td>                                                                                              
+            <td><?php 
+            if ($dato["nIngreso"]!='0000-00-00')            
+                echo $dato["nIngreso"]; ?></td>                                  
+            <td><?php 
+            if ($dato["nVst"]>0)            
+                echo 'X'; ?></td>                                                                                              
+            <td><?php 
+            if ($dato["nVsp"]!='0')            
+                echo $dato["nVsp"]; ?></td>                                                                                                          
+            
+        </tr>
+    <?php } ?>
+        
+<?php echo $this->render('layout/tabla_p') ?>
+
+<?php 
+$this->ncol='null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,';
+echo $this->render('layout/tabla_tb') ?>        
+        
+<?php echo $this->render('layout/iregresar') ?> 

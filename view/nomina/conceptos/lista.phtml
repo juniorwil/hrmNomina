@@ -1,0 +1,262 @@
+<?php echo $this->render('layout/titulo') ?>
+
+<?php
+
+$form = $this->form;
+$form->prepare();
+
+$form->setAttributes(array(
+    'action' => $this->url.$this->lin.'a/'.$this->id,
+    'method' => 'post'
+));
+// Get the form label plugin
+$formLabel = $this->plugin('formLabel');
+// Abriendo etiqueta del formulario
+echo $this->form()->openTag($form);
+?>
+<div class="tabbable">
+  <ul class="nav nav-tabs padding-12 tab-color-blue background-blue" id="myTab4">
+	<li class="active">
+	    <a data-toggle="tab" href="#datos">Datos basicos</a>
+	</li>
+	<li>
+	    <a data-toggle="tab" href="#confiGen">Configuración general</a>
+	</li>
+
+	<li>
+	   <a data-toggle="tab" href="#confiCon">Configuración contable</a>
+	</li>
+  </ul>
+
+  <div class="tab-content"> 
+      
+      <div id="datos" class="tab-pane in active"><!-- DATOS BASICOS -->             
+          <br />
+<div class="row">
+<div class="col-sm-4">
+<?php
+    $name = $form->get('nombre')->setAttribute("class", "col-sm-9");
+    echo $formLabel->openTag()."Nombre del concepto:";
+    echo $formLabel->closeTag();
+    echo $this->formInput($name);
+    echo $this->formElementErrors($name);
+?>
+</div> 
+<div class="col-sm-4">
+<?php
+    $name = $form->get('alias');
+    echo $formLabel->openTag().'Alias del concepto:';
+    echo $formLabel->closeTag();
+    echo $this->formInput($name);
+    echo $this->formElementErrors($name);
+?>
+</div> 
+<div class="col-sm-4">
+<?php
+    $name = $form->get('codigo');
+    echo $formLabel->openTag().$name->getOption('label');
+    echo $formLabel->closeTag();
+    echo $this->formInput($name);
+    echo $this->formElementErrors($name);
+?>
+</div> 
+</div>
+<hr />
+<div class="row">
+<div class="col-sm-4">
+<?php
+    $select = $form->get('tipo3');
+    echo $formLabel->openTag().'Tomar fondo';
+    echo $formLabel->closeTag();
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+?>
+</div>    
+<div class="col-sm-4">
+<?php
+    $select = $form->get('tipo');
+    echo $formLabel->openTag().'Tipo de concepto';
+    echo $formLabel->closeTag();
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+?>
+</div> 
+<div class="col-sm-4">
+<?php
+    $select = $form->get('tipo2');
+    echo $formLabel->openTag().'Valor del concepto';
+    echo $formLabel->closeTag();
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+?>
+</div> 
+</div>
+<hr />
+<div class="row">
+<div class="col-sm-4">
+<?php
+    $select = $form->get('check1');
+    echo $this->formCheckbox($select);
+?><span class="lbl"></span>Automático  
+</div> 
+<div class="col-sm-4">
+<?php
+    $select = $form->get('check2');
+    echo $this->formCheckbox($select);
+?><span class="lbl"></span>Informativo
+</div>     
+</div>
+</div><!-- FIN DATOS BASICOS -->
+
+
+<div id="confiGen" class="tab-pane in active"><!-- CONFIG GENERAL -->                 
+
+<div class="row">    
+<div id="resultado" ></div>
+<div class="col-sm-4">
+    <?php
+      $select = $form->get('idTnomm');
+      echo $formLabel->openTag().' nominas afectadas';
+      echo $formLabel->closeTag();
+      echo $this->formSelect($select);
+      echo $this->formElementErrors($select);
+   ?>   
+</div>
+<div class="col-sm-4">    
+   <?php $select = $form->get('periodo');
+    echo $formLabel->openTag().'Periodo de ejecuci�n ';
+    echo $formLabel->closeTag();
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);?>   
+  </div>         
+
+</div>        
+<br />
+<div class="row">
+<div class="col-sm-4">
+    <?php
+      $select = $form->get('idConcM');
+      echo $formLabel->openTag().' Conceptos hijos';
+      echo $formLabel->closeTag();
+      echo $this->formSelect($select);
+      echo $this->formElementErrors($select);
+   ?>   
+</div>     
+<div class="col-sm-4">
+    <?php
+    $select = $form->get('idTempM');
+    echo $formLabel->openTag().'Afecta solo los tipo de empleados a continuación';
+    echo $formLabel->closeTag();
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+?>
+</div>    
+<div class="col-sm-4">
+<?php
+    $select = $form->get('idFor');
+    echo $formLabel->openTag().'Formula asociada';
+    echo $formLabel->closeTag();
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+?>
+</div> 
+</div> 
+    
+</div><!-- FIN CONFIG GENERAL -->                 
+
+<div id="confiCon" class="tab-pane in active"><!-- CONFIG CONTABLE -->                 
+<div class="row">    
+  <div class="col-sm-4">Codigo de cuenta:<br />                      
+  <?php
+    $select = $form->get('codCta');
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+  ?>    
+  </div>
+  <div class="col-sm-4">Naturaleza de cuenta:<br />                      
+  <?php
+    $select = $form->get('natCta');
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+  ?>    
+  </div>    
+</div>    
+<hr />
+<div class="row">    
+  <div class="col-sm-4">Tercero pre asignado:<br />                      
+  <?php
+    $select = $form->get('idTer');
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+  ?>    
+  </div>
+<div class="col-sm-4">
+<?php
+    $select = $form->get('check3');
+    echo $this->formCheckbox($select);
+?><span class="lbl"></span>Traer nit de fondos
+</div>     
+</div>    
+
+</div><!-- CONFIG CONTABLE -->                 
+
+</div>
+
+<hr />
+<script>
+$(function () {
+  $("#check").click(function () {
+   $.ajax({
+       success:  function (response) 
+       {
+         if($("#check").is(':checked')) 
+         {
+           $("#resultado").show(); 
+         }else{ 
+           $("#resultado").hide(); 
+         }                 
+       }
+     });           
+   })
+  })
+
+         if($("#check").is(':checked')) 
+         {
+           $("#resultado").show(); 
+         }else{ 
+           $("#resultado").hide(); }
+</script>
+<!-- PROCESOS DEL CONCEPTO -->
+<h3 class="header smaller lighter blue">Procesos</h3>
+<?php 
+foreach ($this->datos as $dato){ ?>
+<div class="form_element">
+<?php
+    $i = $dato['id'];
+    $select = $formn->get('checki'.$i); // Marcacion de cada proceso
+    echo $this->formCheckbox($select);
+?><span class="lbl"></span><?php echo $dato['nombre'].' '; ?>
+<?php 
+    $name = $formn->get('idi'.$i)->setAttribute("value",$dato['id']); // Se usa id escondigo por cada check para id del proceso.
+    echo $this->formInput($name);       
+} ?>
+</div>
+
+<div class="control-group">    
+<?php    
+    $name = $form->get('id');
+    echo $this->formInput($name);    
+?>    
+</div>
+<div class="form-actions">    
+  <?php echo $this->formElement($form->get('send')) ?>
+</div>    
+<?php echo $this->form()->closeTag() ?>
+
+<?php echo $this->render('layout/iregresar') ?>    
+
+
+
+
+
+

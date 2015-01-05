@@ -1,0 +1,49 @@
+<?php 
+echo $this->render('layout/titulo') ?>
+
+<a href="<?php echo $this->basePath() ?><?php echo $this->lin?>a"><?php 
+$this->nuevo='Generar una nueva planilla';
+echo $this->render('layout/inuevo') ?></a>
+
+
+<?php echo $this->render('layout/tabla_c') ?>
+
+    <?php foreach ($this->datos as $dato){ ?>
+        <tr>
+            <td><?php echo $dato["fecha"]; ?></td>
+            <td><?php echo $dato["nomgrup"] ?></td>            
+            <td><?php echo $dato["numEmp"] ?></td>            
+            <td>
+             <?php if ($dato["estado"]==0){ ?>               
+              <a href="<?php echo $this->basePath() ?><?php echo $this->lin?>g/<?php echo $dato["id"]?>"> <?php echo $this->render('layout/iitems') ?> </a>
+             <?php }else{ ?>                               
+              <?php echo $this->render('layout/iok') ?> 
+             <?php } ?>                  
+            </td>
+            <td>
+             <?php if ($dato["estado"]==1){ ?>               
+              <a href="<?php echo $this->basePath() ?><?php echo $this->lin?>i/<?php echo $dato["id"]?>"> <?php echo $this->render('layout/ipersonal') ?> </a>
+             <?php } ?>                              
+            </td>  
+            <td>
+
+                <?php // Parametros para impresion de documento 
+                $this->idR = 56; // Id del reporte
+                $this->idP = $dato["id"];
+                echo $this->render('layout/ipdf'); // Fin parametros ?>                
+                
+            </td>            
+            <td>
+                <a href="<?php echo $this->basePath() ?><?php echo $this->lin?>d/<?php echo $dato["id"]?>"> <?php echo $this->render('layout/ieliminar') ?> </a>
+            </td>            
+        </tr>
+    <?php } ?>
+        
+<?php echo $this->render('layout/tabla_p') ?>
+   
+<?php 
+$this->ncol='null,null,null,null,null,';
+echo $this->render('layout/tabla_tb') ?>   
+        
+        
+        

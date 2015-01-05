@@ -1,0 +1,93 @@
+<?php echo $this->render('layout/titulo') ?>
+<?php
+$form = $this->form;
+$form->prepare();
+
+$form->setAttributes(array(
+    'action' => $this->url.$this->lin.'a',
+    'method' => 'post'
+));
+// Get the form label plugin
+$formLabel = $this->plugin('formLabel');
+// Abriendo etiqueta del formulario
+echo $this->form()->openTag($form);
+?>
+<?php    
+    $name = $form->get('id');
+    echo $this->formInput($name);    
+?>
+      <?php
+       $select = $form->get('estado');
+       echo $formLabel->openTag().'Estado';
+       echo $formLabel->closeTag();
+       echo $this->formSelect($select);
+       echo $this->formElementErrors($select);
+      ?>
+
+<?php echo $this->render('layout/tabla_c') ?>
+
+    <?php foreach ($this->datos as $dato){ ?>
+        <tr>
+            <td><?php echo $dato["codigo"] ?></td>
+            <td>                
+               <?php                 
+                  $name = $form->get('numero')->setAttribute("value",$dato["salario"])
+                                 ->setAttribute("class","numero")
+                                 ->setAttribute("id",'sa'.$dato['id']) 
+                                 ->setAttribute("name",'sa'.$dato['id']) 
+                                 ->setAttribute("readonly",true);            
+                  echo $this->formInput($name);
+                  echo $this->formElementErrors($name);     
+               ?>                                                
+            </td>                        
+            <td>
+               <?php            
+                 $name = $form->get('diasVac')->setAttribute("value",0)
+                                 ->setAttribute("id",  $dato['id'])
+                                 ->setAttribute("name", $dato['id']);
+                 echo $this->formInput($name);
+                 echo $this->formElementErrors($name);            
+               ?>                
+            </td>            
+            <td>
+               <?php                 
+                  $name = $form->get('diasVacP')->setAttribute("value",0)
+                                 ->setAttribute("id",'nsa'.$dato['id']) 
+                                 ->setAttribute("id",'nsa'.$dato['id']) 
+                                 ->setAttribute("readonly",true);            
+                  echo $this->formInput($name);
+                  echo $this->formElementErrors($name);     
+               ?>                                
+            </td>
+        </tr>
+    <?php } ?>
+        
+<?php echo $this->render('layout/tabla_p') ?>
+
+<div class="form-actions">    
+  <?php echo $this->formElement($form->get('send')->setAttribute("id","generar")) ?>
+</div>         
+        
+<?php echo $this->form()->closeTag() ?>
+
+<script>  
+ $(function (){  
+    $('.span5').number( true, 2 );
+    $('.span6').number( true );
+    $('.numero').number( true );    
+ })
+ 
+ $('.span5').focusout(function(){  
+   var id   = $(this).attr('id');  
+   var porc = $("#"+id).val();
+   var sal  = parseInt( $("#sa"+id).val() ) ;
+   var nsal =  ( parseInt ( (porc/100) * sal) ) + sal  ;
+   $("#nsa"+id).val(nsal);
+   
+ })
+ </script>
+
+
+
+<?php echo $this->render('layout/iregresar') ?>    
+

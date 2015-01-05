@@ -1,0 +1,581 @@
+<?php
+$formn = $this->formn;
+$formn->prepare();
+$formLabel = $this->plugin('formLabel');
+?>
+<!-- Agregar novedad -->   
+    
+<div class="tabbable">
+  <ul class="nav nav-tabs padding-12 tab-color-blue background-blue" id="myTab4">
+	<li class="active">
+	    <a data-toggle="tab" href="#nove">Novedades</a>
+	</li>
+	<li>
+	    <a data-toggle="tab" href="#auto">Automaticos</a>
+	</li>
+
+	<li>
+	   <a data-toggle="tab" href="#calculo">Calculados</a>
+	</li>
+	<li>
+	   <a data-toggle="tab" href="#otros">Programados</a>
+	</li>        
+	<li>
+	   <a data-toggle="tab" href="#info">Informativas</a>
+	</li>                
+  </ul> 
+    
+    
+<?php 
+$Tdevengado=0;
+$Tdeducido=0;        
+// Cargar centro de costo en arreglo
+$arreglo='';
+foreach ($this->datccos as $datcc){
+   $idc=$datcc['id'];$nom=$datcc['nombre'];
+   $arreglo[$idc]= $nom;
+}              
+?>
+<div class="tab-content">    
+      <div id="nove" class="tab-pane in active"><!-- Novedades -->   
+  <?php echo $this->render('layout/tabla_cF') ?>
+    <?php
+    // Recorrer valores del documento        
+    foreach ($this->datNau as $dato){
+        $devengado = 0;
+        $deducido  = 0;      
+        $natura    = $dato["tipo"]; // Devengado / deducido
+        $valor     = $dato["valor"]; // Hoas / Pesos
+        if ($natura==1)
+        {
+           $devengado = $dato["devengado"];            
+           $Tdevengado = $Tdevengado+$devengado;
+         }
+         else 
+         {
+            $deducido = $dato["deducido"];                        
+            $Tdeducido= $Tdeducido+$deducido;
+         }       
+        //---------------------------------------------------
+    ?>
+       <tr>
+           <td>
+             <?php 
+               // Id del item               
+               echo $dato["nombre"]; 
+                ?></td>
+            <td>                
+            <?php
+             // Horas de la novedad
+            if ($valor==1)// manejo por horas
+            {
+               echo ($this->formRow($formn->get('horaG')
+                                   ->setAttribute("value", $dato["horas"])
+                                   ->setAttribute("readonly", true)
+                                   ->setAttribute("id", "hor_".$dato["id"]) ));                           
+               echo ($this->formRow($formn->get('id4')->setAttribute("value", $dato["horas"])->setAttribute("id", "ho".$dato["id"]) ));
+            }else
+                echo 0;
+            ?>                
+            </td>                       
+            <td>
+              <div class="col-sm-10">            
+              <?php 
+            // Devengados
+            if ($natura==1)
+            {
+               echo ($this->formRow($formn->get('devengado')
+                          ->setAttribute("value", $devengado )
+                          ->setAttribute("id", "dev_".$dato["id"])
+                          ->setAttribute("size", 20 ) ));          
+               echo ($this->formRow($formn->get('id4')->setAttribute("value", $devengado )->setAttribute("id", "dv".$dato["id"]) ));
+            }else 
+               echo 0;  
+            ?>
+              </div>
+              </td>            
+            <td><?php 
+            // Deducidos
+            if ($natura==2)
+            {            
+               echo ($this->formRow($formn->get('deducido')
+                                    ->setAttribute("value", $deducido )
+                                    ->setAttribute("id", "ded_".$dato["id"]) 
+                                    ->setAttribute("size", 20 ) ));          
+               echo ($this->formRow($formn->get('id4')->setAttribute("value", $deducido )->setAttribute("id", "dd".$dato["id"]) ));
+            }else
+            {
+                echo 0;
+            }
+            ?></td>            
+            <td>
+              <div class="col-sm-4">    
+                <?php 
+            $this->formRow($formn->get('idCencosS')->setValueOptions($arreglo));             
+            echo ($this->formRow($formn->get('idCencosS')
+                          ->setAttribute("value", $dato["idCcos"])
+                          ->setAttribute("id", "cc_".$dato["id"]) ));
+            
+            echo ($this->formRow($formn->get('id4')->setAttribute("value", $dato["idCcos"])
+                                                   ->setAttribute("id", "cc".$dato["id"]) ));
+            ?></div>  </td>                                    
+            <td>
+                <a href="<?php echo $this->basePath() ?><?php echo $this->lin?>d/<?php echo $dato["id"]?>"> <?php echo $this->render('layout/ieliminar') ?> </a>
+            </td>                        
+        </tr>
+    <?php 
+    }?>
+  <?php echo $this->render('layout/tabla_p') ?>                            
+      </div><!-- Fin novedades -->
+  
+<!---------------- ***********************************************************    NOVEDADES AUTOMATICAS -->      
+<!-------------------------------------------------------------------------------------------------------->      
+      
+<div id="auto" class="tab-pane"><!-- Automaticos -->         
+
+  <?php echo $this->render('layout/tabla_c') ?>
+    <?php
+    // Recorrer valores del documento        
+    foreach ($this->datTau as $dato){
+        $devengado = 0;
+        $deducido  = 0;      
+        $natura    = $dato["tipo"]; // Devengado / deducido
+        $valor     = $dato["valor"]; // Hoas / Pesos
+        if ($natura==1)
+        {
+           $devengado = $dato["devengado"];            
+           $Tdevengado = $Tdevengado+$devengado;
+         }
+         else 
+         {
+            $deducido = $dato["deducido"];                        
+            $Tdeducido= $Tdeducido+$deducido;
+         }       
+        //---------------------------------------------------
+    ?>
+       <tr>
+           <td>
+             <?php 
+               // Id del item               
+               echo $dato["nombre"]; 
+                ?></td>
+            <td>                
+            <?php
+             // Horas de la novedad
+            if ($valor==1)// manejo por horas
+            {
+               echo $dato["horas"];
+            }else
+                echo 0;
+            ?>                
+            </td>                       
+            <td><?php 
+            // Devengados
+            if ($natura==1)
+            {
+               echo number_format($devengado);
+            }else 
+               echo 0;  
+            ?></td>            
+            <td><?php 
+            // Deducidos
+            if ($natura==2)
+            {            
+               echo number_format($deducido);
+            }else
+            {
+                echo 0;
+            }
+            ?></td>            
+            <td><?php 
+            $this->formRow($formn->get('idCencosS')->setValueOptions($arreglo));             
+            echo ($this->formRow($formn->get('idCencosS')->setAttribute("value", $dato["idCcos"])->setAttribute("id", "cc_".$dato["id"])->setAttribute("disabled", true) ));            
+            ?></td>                                    
+            <td>                
+            </td>                        
+        </tr>
+    <?php 
+    }?>
+  <?php echo $this->render('layout/tabla_p') ?>                            
+ 
+                 
+         
+         
+
+     </div><!-- Fin automaticos -->
+
+
+<!---------------- ***********************************************************    CALCULADOS -->      
+<!-------------------------------------------------------------------------------------------------------->           
+     
+     <div id="calculo" class="tab-pane"><!-- calculados -->
+
+  <?php echo $this->render('layout/tabla_c') ?>
+    <?php
+    // Recorrer valores del documento        
+    foreach ($this->datCau as $dato){
+        $devengado = 0;
+        $deducido  = 0;      
+        $natura    = $dato["tipo"]; // Devengado / deducido
+        $valor     = $dato["valor"]; // Hoas / Pesos
+        if ($natura==1)
+        {
+           $devengado = $dato["devengado"];            
+           $Tdevengado = $Tdevengado+$devengado;
+         }
+         else 
+         {
+            $deducido = $dato["deducido"];                        
+            $Tdeducido= $Tdeducido+$deducido;
+         }       
+        //---------------------------------------------------
+    ?>
+       <tr>
+           <td>
+             <?php 
+               // Id del item               
+               echo $dato["nombre"]; 
+                ?></td>
+            <td>                
+            <?php
+             // Horas de la novedad
+            if ($valor==1)// manejo por horas
+            {
+               echo $dato["horas"];
+            }else
+                echo 0;
+            ?>                
+            </td>                       
+            <td><?php 
+            // Devengados
+            if ($natura==1)
+            {
+               echo number_format($devengado);
+            }else 
+               echo 0;  
+            ?></td>            
+            <td><?php 
+            // Deducidos
+            if ($natura==2)
+            {            
+               echo number_format($deducido);
+            }else
+            {
+                echo 0;
+            }
+            ?></td>            
+            <td><?php 
+            $this->formRow($formn->get('idCencosS')->setValueOptions($arreglo));             
+            echo ($this->formRow($formn->get('idCencosS')->setAttribute("value", $dato["idCcos"])->setAttribute("id", "cc_".$dato["id"])->setAttribute("disabled", true) ));            
+            ?></td>                                    
+            <td>                
+            </td>                        
+        </tr>
+    <?php 
+    }?>
+  <?php echo $this->render('layout/tabla_p') ?>                            
+         
+         
+     </div><!-- Fin calculados -->          
+
+
+<!---------------- ***********************************************************    OTROS AUTOMATICOS -->      
+<!-------------------------------------------------------------------------------------------------------->      
+
+     <div id="otros" class="tab-pane"><!-- Programados -->
+
+   <?php echo $this->render('layout/tabla_c') ?>
+    <?php
+    // Recorrer valores del documento        
+    foreach ($this->datOau as $dato){
+        $devengado = 0;
+        $deducido  = 0;      
+        $natura    = $dato["tipo"]; // Devengado / deducido
+        $valor     = $dato["valor"]; // Hoas / Pesos
+        if ($natura==1)
+        {
+           $devengado = $dato["devengado"];            
+           $Tdevengado = $Tdevengado+$devengado;
+         }
+         else 
+         {
+            $deducido = $dato["deducido"];                        
+            $Tdeducido= $Tdeducido+$deducido;
+         }       
+        //---------------------------------------------------
+    ?>
+       <tr>
+           <td>
+             <?php 
+               // Id del item               
+               echo $dato["nombre"]; 
+                ?></td>
+            <td>                
+            <?php
+             // Horas de la novedad
+//            if ($valor==1)// manejo por horas
+//            {
+               echo $dato["horas"];
+//            }else
+//                echo 0;
+            ?>                
+            </td>                                            
+            <td><?php 
+            // Devengados
+            if ($natura==1)
+            {
+               echo number_format($devengado);
+            }else 
+               echo 0;  
+            ?></td>            
+            <td><?php 
+            // Deducidos
+            if ($natura==2)
+            {            
+               echo number_format($deducido);
+            }else
+            {
+                echo 0;
+            }
+            ?></td>          
+            <td><?php 
+            $this->formRow($formn->get('idCencosS')->setValueOptions($arreglo));             
+            echo ($this->formRow($formn->get('idCencosS')->setAttribute("value", $dato["idCcos"])->setAttribute("id", "cc_".$dato["id"])->setAttribute("disabled", true) ));            
+            ?></td>               
+            <td>                
+            </td>                        
+        </tr>
+    <?php 
+    }?>
+  <?php echo $this->render('layout/tabla_p') ?>                                             
+                    
+         
+     </div><!-- Fin programados -->          
+     
+
+      <div id="info" class="tab-pane in active"><!-- Novedades informativas-->   
+  <?php echo $this->render('layout/tabla_cF') ?>
+    <?php
+    // Recorrer valores del documento        
+    foreach ($this->datIau as $dato){
+        $devengado = 0;
+        $deducido  = 0;      
+        $natura    = $dato["tipo"]; // Devengado / deducido
+        $valor     = $dato["valor"]; // Hoas / Pesos
+        if ($natura==1)
+        {
+           $devengado = $dato["devengado"];            
+           $Tdevengado = $Tdevengado+$devengado;
+         }
+         else 
+         {
+            $deducido = $dato["deducido"];                        
+            $Tdeducido= $Tdeducido+$deducido;
+         }       
+        //---------------------------------------------------
+    ?>
+       <tr>
+           <td>
+             <?php 
+               // Id del item               
+               echo $dato["nombre"]; 
+                ?></td>
+            <td>                
+            <?php
+             // Horas de la novedad
+            if ($valor==1)// manejo por horas
+            {
+               echo ($this->formRow($formn->get('horaG')
+                                   ->setAttribute("value", $dato["horas"])
+                                   ->setAttribute("readonly", true)
+                                   ->setAttribute("id", "hor_".$dato["id"]) ));                           
+               echo ($this->formRow($formn->get('id4')->setAttribute("value", $dato["horas"])->setAttribute("id", "ho".$dato["id"]) ));
+            }else
+                echo 0;
+            ?>                
+            </td>                       
+            <td>
+              <div class="col-sm-10">            
+              <?php 
+            // Devengados
+            if ($natura==1)
+            {
+               echo number_format($devengado); 
+            }else 
+               echo 0;  
+            ?>
+              </div>
+              </td>            
+            <td><?php 
+            // Deducidos
+            if ($natura==2)
+            {            
+               echo number_format($deducido); 
+            }else
+            {
+                echo 0;
+            }
+            ?></td>            
+            <td>
+              <div class="col-sm-4">    
+                <?php 
+            $this->formRow($formn->get('idCencosS')->setValueOptions($arreglo));             
+            echo ($this->formRow($formn->get('idCencosS')
+                          ->setAttribute("value", $dato["idCcos"])
+                          ->setAttribute("id", "cc_".$dato["id"]) ));
+            
+            echo ($this->formRow($formn->get('id4')->setAttribute("value", $dato["idCcos"])
+                                                   ->setAttribute("id", "cc".$dato["id"]) ));
+            ?></div>  </td>                                    
+            <td>
+                <a href="<?php echo $this->basePath() ?><?php echo $this->lin?>d/<?php echo $dato["id"]?>"> <?php echo $this->render('layout/ieliminar') ?> </a>
+            </td>                        
+        </tr>
+    <?php 
+    }?>
+  <?php echo $this->render('layout/tabla_p') ?>                            
+      </div><!-- Fin novedades informativas -->     
+     
+     
+   </div>
+ </div>
+
+<table class="table table-striped table-bordered table-hover" id="table_report">
+ <tr>
+        <td></td>           
+        <td></td>            
+        <td><strong>TOTALTES</strong></td>            
+        <td><strong><?php 
+        // Devengados
+            echo number_format($Tdevengado);
+        ?></strong></td>            
+        <td><strong><?php 
+        // Deducidos
+            echo number_format($Tdeducido);
+        ?></strong></td>            
+        <td><strong><?php 
+        // Deducidos
+            echo number_format($Tdevengado-$Tdeducido);
+        ?></td>                                
+        </tr>    
+</table>
+    
+<script>
+$(function (){
+// Variables
+var valor   = $("#hora").val();
+var idconc  = $("#idConc").val();
+var idnom   = $("#idNom").val(); // ID nomina
+var idinom  = $("#idInom").val(); // ID nomina_e
+var idccos  = $("#idCcos").val(); // ID nomina_e 
+
+$('.hora').focusout(function(){  
+  var idnov = $(this).attr('id');
+  var ha  = $("#"+idnov).val();
+  // Quitar caracteres especiales y sacar solo el numero del id
+  var d = idnov.indexOf('_');
+  var idnov = idnov.substring(d+1, 10);    
+  var haa = $("#ho"+idnov).val();
+
+  if (ha!=haa)
+      {
+        // Cargar documento de novedades para recalculo y otras
+        var parametros = {
+            "idConc"  : idconc,
+            "idNom"   : idnom,
+            "idInom"  : idinom,
+            "idCcos"  : idccos,    
+            "idNov"   : idnov,     
+            "tipo"    : 2,            
+            "valor"   : ha,
+        }; 
+        $.ajax({
+           data:  parametros,     
+           type:  'post',
+           url:   '<?php echo $this->basePath() ?><?php echo $this->lin?>nov',
+           beforeSend: function () {
+              $("#resultado").html('<h3 class="header smaller lighter grey"><i class="icon-spinner icon-spin orange bigger-125"></i></h3>Recalculando por favor espere...');
+             },
+           success:  function (response) {
+              $("#resultado").html(response);                    
+             }
+        }); // Fin ajax     
+   
+     }// Fin valdiar que sean horas diferentes para actualizar  
+  }); // Validar focus de la HORA   
+
+
+$('.devengados').focusout(function(){  
+  var idnov = $(this).attr('id');
+  var ha  = $("#"+idnov).val();
+  // Quitar caracteres especiales y sacar solo el numero del id
+  var d = idnov.indexOf('_');
+  var idnov = idnov.substring(d+1, 10);  
+  var haa = $("#dv"+idnov).val();  
+  
+  if (ha!=haa)
+      {
+        // Cargar documento de novedades para recalculo y otras
+        var parametros = {
+            "idConc"  : idconc,
+            "idNom"   : idnom,
+            "idInom"  : idinom,
+            "idCcos"  : idccos,    
+            "idNov"   : idnov,     
+            "tipo"    : 3,
+            "valor"   : ha ,            
+        }; 
+        $.ajax({
+           data:  parametros,     
+           type:  'post',
+           url:   '<?php echo $this->basePath() ?><?php echo $this->lin?>nov',
+           beforeSend: function () {
+              $("#resultado").html('<h3 class="header smaller lighter grey"><i class="icon-spinner icon-spin orange bigger-125"></i></h3>Por favor espere...');
+             },
+           success:  function (response) {
+              $("#resultado").html(response); 
+             }
+        }); // Fin ajax     
+   
+     }// Fin valdiar que sean horas diferentes para actualizar  
+  }) // Validar focus de la DEVENGADOS
+
+$('.deducidos').focusout(function(){  
+  var idnov = $(this).attr('id');
+  var ha  = $("#"+idnov).val();
+  // Quitar caracteres especiales y sacar solo el numero del id
+  var d = idnov.indexOf('_');
+  var idnov = idnov.substring(d+1, 10);  
+  var haa = $("#dd"+idnov).val();  
+  
+  if (ha!=haa)
+      {
+        // Cargar documento de novedades para recalculo y otras
+        var parametros = {
+            "idConc"  : idconc,
+            "idNom"   : idnom,
+            "idInom"  : idinom,
+            "idCcos"  : idccos,    
+            "idNov"   : idnov,     
+            "tipo"    : 4,
+            "valor"   : ha ,            
+        }; 
+        $.ajax({
+           data:  parametros,     
+           type:  'post',
+           url:   '<?php echo $this->basePath() ?><?php echo $this->lin?>nov',
+           beforeSend: function () {
+              $("#resultado").html('<h3 class="header smaller lighter grey"><i class="icon-spinner icon-spin orange bigger-125"></i></h3>Por favor espere...');
+             },
+           success:  function (response) {
+              $("#resultado").html(response); 
+             }
+        }); // Fin ajax     
+   
+     }// Fin valdiar que sean horas diferentes para actualizar  
+  }) // Validar focus de la DEDUCIDO
+
+
+ })
+</script>
+ 

@@ -1,0 +1,201 @@
+<?php
+$form = $this->form;
+$form->prepare();
+
+$form->setAttributes(array(
+    'action' => $this->url.$this->lin.'a',
+    'method' => 'post'
+));
+// Get the form label plugin
+$formLabel = $this->plugin('formLabel');
+// Abriendo etiqueta del formulario
+
+?>
+<?php echo $this->render('layout/tabla_c') ?>
+
+    <?php 
+    $diasP  = 0;
+    $dias  = 0;
+    $fecha = '';
+    $d = 1;
+        foreach ($this->datos as $dato){ ?>
+        <tr>
+            <td><?php echo $dato["CedEmp"].' - '.$dato["nombre"].' '.$dato["apellido"] ?></td>
+            <td><?php echo $dato["fechaI"] ?></td>
+            <td><?php echo $dato["fechaF"] ?></td>
+            <td><?php echo $dato['diasP'] ;?></td>
+            <td><?php 
+    $name = $form->get('diasVacP')->setAttribute("value",15-$dato['diasP'])
+                                 ->setAttribute("id",'pe'.$dato['id']) ->setAttribute("readonly",true);            
+    echo $this->formInput($name);
+    echo $this->formElementErrors($name);     
+            ?></td>
+            <td> <?php            
+            $name = $form->get('diasVac')->setAttribute("value",$dato['dias'])
+                                 ->setAttribute("id",$dato['id']);
+            $fecha = $dato['fechaI'];
+            $dias = $dias + $dato['dias'] ;
+    echo $this->formInput($name);
+    echo $this->formElementErrors($name);            
+    ?>                
+                
+            </td>
+        </tr>
+    <?php 
+    $diasP=$diasP+15;
+    $d++; 
+    } ?>
+<tr>
+    <td></td>
+    <td><strong>TOTAL:</strong></td>
+    <td></td>
+    <td></td>
+    <td>
+      <?php            
+       $name = $form->get('diasVacP')->setAttribute("value",$diasP)
+                                    ->setAttribute("id","totalP")
+                                    ->setAttribute("readonly",true);
+       echo $this->formInput($name);
+       echo $this->formElementErrors($name);            
+      ?>                       
+    </td>    
+    <td>
+      <?php            
+       $name = $form->get('diasVac')->setAttribute("value",$dias)
+                                    ->setAttribute("id","total")
+                                    ->setAttribute("readonly",true);
+       echo $this->formInput($name);
+       echo $this->formElementErrors($name);            
+      ?>           
+    </td>
+</tr>          
+        
+
+<?php echo $this->render('layout/tabla_p') ?>   
+ 
+ <table>
+    <tr><td>
+
+    </td><td>            
+<?php
+    $name = $form->get('fecDoc');
+    echo $formLabel->openTag()." Fecha de salida: ";
+    echo $formLabel->closeTag();
+    echo $this->formInput($name);
+    echo $this->formElementErrors($name);
+?>
+    </td><td><?php echo $this->formElement($form->get('buscar')->setAttribute("id","promedio")) ?></td>        
+
+    </tr>
+</table>    
+ <hr />
+ <div id='resultadoc'> </div>
+ <script>  
+ $(function (){         
+    var id   = $("#id").val();  
+    if (id>0)
+    {        
+       var idEmp   = $("#idEmp").val();  
+       var fecsal  = $("#fecDoc").val();  
+       var total   = $("#total").val();  
+       
+       var parametros = {
+            "idEmp"   : idEmp,
+            "fecsal"  : fecsal,
+            "total"   : total,
+       };         
+       $.ajax({
+             data:  parametros,     
+             type:  'post',
+             url:   '<?php echo $this->basePath() ?><?php echo $this->lin?>ac',
+             beforeSend: function () {
+                 $("#resultadoc").html('<h3 class="header smaller lighter grey"><i class="icon-spinner icon-spin orange bigger-125"></i></h3>Recalculando por favor espere...');
+             },
+              success:  function (response) {
+                 $("#resultadoc").html(response);  
+                 //   alert("Cuotas registradas de forma correcta")
+              }
+         }); // Fin ajax                                                                                                          
+            
+    }
+
+    $('#promedio').click(function(){         
+       if ($("#total").val()<=0 )
+       {
+         alert('Debe digitar el numero de dias que estara fuera el empleado')
+         return false;
+       }
+       if ($("#fecDoc").val()=='' )
+       {
+         alert('Debe digitar la fecha de salida del empleado')
+         return false;
+       }       
+       var idEmp   = $("#idEmp").val();  
+       var fecsal  = $("#fecDoc").val();  
+       var total   = $("#total").val();  
+       
+       var parametros = {
+            "idEmp"   : idEmp,
+            "fecsal"  : fecsal,
+            "total"   : total,
+       };  
+       $.ajax({
+             data:  parametros,     
+             type:  'post',
+             url:   '<?php echo $this->basePath() ?><?php echo $this->lin?>ac',
+             beforeSend: function () {
+                 $("#resultadoc").html('<h3 class="header smaller lighter grey"><i class="icon-spinner icon-spin orange bigger-125"></i></h3>Recalculando por favor espere...');
+             },
+              success:  function (response) {
+                 $("#resultadoc").html(response);  
+                 //   alert("Cuotas registradas de forma correcta")
+              }
+         }); // Fin ajax                                                                                       
+
+       
+     });
+   $('.span5').focusout(function(){  
+     var valorT = 0;
+     var valorP = $("#totalP").val();
+     var numero = <?php echo $d-1?>;
+     var diasP = 0;     
+     $('.span5').each(function(indice, elemento) {
+        var id     = $(this).attr('id');        
+        if (id!='total')
+        {
+          var valor  = parseInt( $("#"+id).val() );
+          var valorPer = $("#pe"+id).val();
+          
+          if (diasP>0)// Que se liquide total dias dl periodo anterior 
+              {
+                  if (diasP<valor){
+                      alert('Debe liquiadar el valor total de dias , para poder pasar a otro periodo');
+                      $("#"+id).val(0);
+                      return false;
+                  }
+              }
+          
+          if (valor > valorPer)// Comprar que no se pase el numero de periodo
+            {
+                alert('El valor de días no puede ser mayor a los dias pendientes del periodo')
+                $("#"+id).val(0);
+                return false;
+            }                      
+          
+          valorT += valor ;
+          if (valorT>valorP)// Total
+            {
+                alert('El valor de días totales no puede ser mayor a los dias pendientes ')
+                $("#"+id).val(0);
+                return false;
+            }           
+            
+           $("#total").val(valorT); 
+           diasP = valor ; // Dia actual
+        }
+     });
+   }); // Ttal recorrido
+   
+ })
+</script> 
+     

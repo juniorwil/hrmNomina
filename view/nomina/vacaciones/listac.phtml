@@ -1,0 +1,205 @@
+<?php
+$form = $this->form;
+$form->prepare();
+
+// Get the form label plugin
+$formLabel = $this->plugin('formLabel');
+// Abriendo etiqueta del formulario
+?>
+
+    <?php // Promedio
+    $promedio = 0;
+    foreach ($this->datos as $dato){ ?>
+     <?php
+      if ($dato['promedio']>0)
+         $promedio = $dato['promedio'];     
+     ?>
+    <?php 
+    } ?>
+
+    <?php // Ultimo salario
+    $sueldo = 0;
+    foreach ($this->datEmp as $dato){ ?>
+     <?php
+      $sueldo = $dato['sueldo'];     
+     ?>
+    <?php 
+
+    } ?>
+			
+<table id="table_bug_report" class="table table-bordered table-striped">
+<tbody>
+
+ <tr>
+   <td class=""><strong>Sueldo actual</strong></td>
+   <td>
+     <b class="blue"><?php echo number_format($sueldo); ?></b>
+   </td>   
+ </tr>
+ <tr>
+   <td class=""><strong>Promedio conceptos de vacaciones</strong></td>
+   <td align="right">
+     <b class="blue"><?php echo number_format($promedio); ?></b>
+   </td>   
+ </tr> 
+<tr>
+   <td class=""><strong>Base</strong></td>
+   <td align="right">
+     <b class="blue"><?php echo number_format($sueldo+$promedio); ?></b>
+   </td>   
+ </tr>  
+ <tr>
+   <td class=""><strong>Promedio por día</strong></td>
+   <td align="right">
+     <b class="blue"><?php echo number_format(($sueldo+$promedio)/30); ?></b>
+   </td>   
+ </tr>  
+ <tr>
+   <td class=""><strong>Días habiles</strong></td>
+   <td align="right">
+     <b class="blue"><?php echo $this->diasHab; ?></b>
+   </td>   
+ </tr>   
+ <tr>
+   <td class=""><strong>Días no habiles</strong></td>
+   <td align="right">
+     <b class="blue"><?php echo $this->diasNhab; ?></b>
+   </td>   
+ </tr>    
+ <tr>
+   <td class=""><strong>Días totales</strong></td>
+   <td align="right">
+     <b class="blue"><?php echo $this->diasNhab + $this->diasHab; ?></b>
+   </td>   
+ </tr>    
+ <tr>
+   <td class=""><strong>Fecha fin de vacaciones</strong></td>
+   <td align="right">
+     <b class="blue">
+     <?php
+       $name = $form->get('fecDoc')->setAttribute("readonly",true)
+                                   ->setAttribute("id","fecReg")
+                                   ->setAttribute("value",$this->fecReg);
+       echo $this->formInput($name);
+       echo $this->formElementErrors($name);
+     ?>                  
+     </b>
+   </td>   
+ </tr>
+ <tr>
+   <td class=""><strong>Fecha de regreso</strong></td>
+   <td align="right">
+     <b class="blue">
+     <?php
+       $name = $form->get('fecDoc')->setAttribute("readonly",true)
+                                   ->setAttribute("id","fecRegR")
+                                   ->setAttribute("value",$this->fecRegR);
+       echo $this->formInput($name);
+       echo $this->formElementErrors($name);
+     ?>                  
+     </b>
+   </td>   
+ </tr> 
+ <tr>
+   <td class=""><strong>Valor a pagar</strong></td>
+   <td align="right">
+     <b class="blue">
+     <?php
+       $name = $form->get('numero')->setAttribute("readonly",true)
+                                   ->setAttribute("id","valor")
+                                   ->setAttribute("value",round( ( ( ($sueldo+$promedio)/30 ) * ($this->diasNhab + $this->diasHab)  ), 0 ) );
+       echo $this->formInput($name);
+       echo $this->formElementErrors($name);
+     ?>                           
+     </b>
+   </td>   
+ </tr>   
+ </tbody>
+</table>
+<div class="form-actions">    
+  <?php echo $this->formElement($form->get('send')->setAttribute("id","generar")) ?>
+</div>    
+
+<div id='resultadog'> </div>
+<script>  
+ $(function (){        
+     $('#generar').click(function(){ 
+     var id2 = $("#id2").val();
+     if (id2>0)
+     {
+        $(location).attr('href',"<?php echo $this->basePath() ?><?php echo $this->lin?>/1"); 
+        return false;
+     }       // Quitar este codigo cuando se encuentre la forma de redireccinal despues del ajax  
+       var id      = $("#id").val();  
+       var idEmp   = $("#idEmp").val();  
+       var fecsal  = $("#fecDoc").val();  
+       var total   = $("#total").val();  
+       var fecReg  = $("#fecReg").val();  
+       var valor   = $("#valor").val();
+       var estado  = $("#estado").val();
+       var salario = <?php echo $sueldo; ?>;
+       var valCon  = <?php echo $promedio; ?>;  
+       var promDia = <?php echo ($sueldo+$promedio)/30; ?>;
+       var diasNh  = <?php echo $this->diasNhab; ?>;
+       var diasCal = <?php echo $this->diasNhab + $this->diasHab; ?>;
+
+       var idPer = [];
+       var diasP = [];
+       $('.span5').each(function(indice, elemento) {
+         var idV   = $(this).attr('id');
+         if (idV!='total')
+         {          
+           var valor  = parseInt( $("#"+idV).val() );
+           idPer.push(idV);  
+           diasP.push(valor);      
+         }
+       });      
+       var parametros = {                      
+            "id"     : id,
+            "idEmp"   : idEmp,
+            "fecsal"  : fecsal,
+            "fecReg"  : fecReg,
+            "dias"    : total,
+            "diasNh"  : diasNh,
+            "valor"   : valor,
+            "estado"  : estado,
+            "idVac"   : id,                
+            "idPer"   : idPer,      
+            "diasP"   : diasP,    
+            "diasCal" : diasCal,    
+            "salario" : salario,    
+            "valCon"  : valCon,  
+            "promDia" : promDia,  
+       }; 
+       $.ajax({
+             data:  parametros,     
+             type:  'post',
+             url:   '<?php echo $this->basePath() ?><?php echo $this->lin?>g',
+             beforeSend: function () {
+                 $("#resultadog").html('<h3 class="header smaller lighter grey"><i class="icon-spinner icon-spin orange bigger-125"></i></h3>Recalculando por favor espere...');
+             },
+              success:  function (response) {
+                 $("#resultadog").html(response); 
+                 alert('Vacaciones generadas de forma correcta !')
+                 $("#id2").val(1);
+              }
+       }); // Fin ajax                                                                                       
+
+        var idPer = [];
+        var diasP = [];
+      $('.span5').each(function(indice, elemento) {
+        var idV   = $(this).attr('id');
+
+        if (idV!='total')
+        {          
+          var valor  = parseInt( $("#"+idV).val() );
+          idPer.push(idV);  // Funciones con matrices
+          diasP.push(valor);// Funciones con matrices      
+        }
+      });
+             
+        //$(location).attr('href',"<?php echo $this->basePath() ?><?php echo $this->lin?>/1"); 
+     });
+ })
+</script> 
+		
