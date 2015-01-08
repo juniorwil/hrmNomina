@@ -53,15 +53,12 @@ echo $this->form()->openTag($form);
     <?php } ?>
         
 <?php echo $this->render('layout/tabla_p') ?>
- 
+
+<?php 
+$this->ncol='null,null,null,null,';
+echo $this->render('layout/tabla_tb') ?>   
+        
 
 <?php echo $this->render('layout/iregresar') ?>    
 
-<?php 
-$null='';
-foreach ($this->datosM as $dato){ 
-  $null=$null.'null,';       
-}?>        
-<?php 
-$this->ncol='null,'.$null;
-echo $this->render('layout/tabla_tb') ?>   
+

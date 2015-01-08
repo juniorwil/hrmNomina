@@ -23,14 +23,20 @@ echo $this->form()->openTag($form);
 ?>
  
 <div class="row">    
-  <div class="col-sm-4">Empleado:<br />
+  <div class="col-sm-4">Empleados que hacen parte de este grupo :<br />
       <?php
       $select = $form->get('idEmp')->setAttribute("id","idEmp");
       echo $this->formSelect($select);
       echo $this->formElementErrors($select);
       ?>
   </div>
-     
+  <div class="col-sm-2">Fecha de ingreso::<br />
+  <?php
+    $name = $form->get('fecDoc');
+    echo $this->formInput($name);
+    echo $this->formElementErrors($name);
+  ?>
+  </div>         
   <div class="col-sm-4">
     <?php echo $this->formElement($form->get('send')) ?>    
   </div>
@@ -54,9 +60,11 @@ echo $this->form()->openTag($form);
         <tr>
             <td><?php echo $dato["CedEmp"] ?></td>                        
             <td><?php echo $dato["nombre"].' '.$dato["apellido"] ?></td>            
+            <td><?php echo $dato["fecIng"] ?></td>                                    
+            <td><?php echo $dato["fecha"] ?></td>                                                
             </td>                                    
             <td>
-                <a href="<?php echo $this->basePath() ?><?php $this->idEli = $dato["id"]; echo $this->lin?>d/<?php echo $dato["id"]?>"> 
+                <a href="<?php echo $this->basePath() ?><?php $this->idEli = $dato["id"]; echo $this->lin?>id/<?php echo $dato["id"]?>"> 
                     <?php echo $this->render('layout/ieliminar') ?> </a>
             </td>            
         </tr>
@@ -67,7 +75,7 @@ echo $this->form()->openTag($form);
 echo $this->render('layout/tabla_p') ?> 
    
 <?php 
-$this->ncol='null,null,';
+$this->ncol='null,null,null,';
 echo $this->render('layout/tabla_tb') ?>   
 
 <?php echo $this->render('layout/iregresar') ?>    

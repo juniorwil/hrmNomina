@@ -79,6 +79,16 @@ class IncapacidadController extends AbstractActionController
         $arreglo[$idc]= $nom;
       }      
       $form->get("idInc")->setValueOptions($arreglo);              
+
+      // 
+      $arreglo='';
+      $datos = $d->getCodEnf('');
+      foreach ($datos as $dat)
+      {
+        $idc=$dat['codigo'];$nom=$dat['codigo'].' '.$dat['nombre'];
+        $arreglo[$idc]= $nom;
+      }      
+      $form->get("tipo2")->setValueOptions($arreglo);                    
       $datos=0;
 
       $val=array
@@ -88,6 +98,7 @@ class IncapacidadController extends AbstractActionController
           );       
       $form->get("estado")->setValueOptions($val);      
       $form->get("estado")->setAttribute("value",1); 
+      $form->get("tipo2")->setAttribute("value", 1 ); 
       $valores=array
       (
            "titulo"  => $this->tfor,
@@ -107,7 +118,7 @@ class IncapacidadController extends AbstractActionController
             $album = new ValFormulario();
             $form->setInputFilter($album->getInputFilter());            
             $form->setData($request->getPost());           
-            $form->setValidationGroup('id'); // ------------------------------------- 2 CAMPOS A VALDIAR DEL FORMULARIO  (C)            
+            $form->setValidationGroup('id','idEmp','idInc'); // ------------------------------------- 2 CAMPOS A VALDIAR DEL FORMULARIO  (C)            
             // Fin validacion de formulario ---------------------------
             if ($form->isValid()) {
                 $this->dbAdapter=$this->getServiceLocator()->get('Zend\Db\Adapter');
@@ -167,6 +178,7 @@ class IncapacidadController extends AbstractActionController
             $form->get("idInc")->setAttribute("value",$datos['idInc']); 
             $form->get("fechaIni")->setAttribute("value",$datos['fechai']); 
             $form->get("fechaFin")->setAttribute("value",$datos['fechaf']); 
+            $form->get("tipo2")->setAttribute("value",$datos['codEnf']); 
             $form->get("estado")->setAttribute("value",$datos['estado']); 
          }            
          return new ViewModel($valores);

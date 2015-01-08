@@ -63,7 +63,8 @@ class Incapacidad extends TableGateway
            'fechai'    => $this->fechaini, 
            'fechaf'    => $fechaFin,
            'fecDoc'    => $dt['fecSis'],
-           'fechaPemp' => $fechaPemp,               
+           'fechaPemp' => $fechaPemp,   
+           'codEnf'    => $data['tipo2'],            
            'estado'    => $this->estado,   
        );           
        if ($id==0) // Nuevo registro           

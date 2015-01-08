@@ -9,6 +9,7 @@ echo $this->render('layout/titulo') ?>
             <td>
                 <a href="<?php echo $this->basePath() ?><?php echo $this->lin?>a/<?php echo $dato["id"]?>"> 
                     <?php echo $this->render('layout/ipersonal') ?> </a>
+                <?php if ( $dato["numItem"]>0 ) echo '('.$dato["numItem"].')'; ?>
             </td>            
         </tr>
     <?php } ?>

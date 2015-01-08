@@ -5,7 +5,7 @@ $form = $this->form;
 $form->prepare();
 
 $form->setAttributes(array(
-    'action' => $this->url.$this->lin.'a',
+    'action' => $this->url.$this->lin.'a/'.$this->id,
     'method' => 'post',
     'id'     => 'formGuaradar'
 ));
@@ -52,12 +52,13 @@ echo $this->form()->openTag($form);
     echo $this->formElementErrors($name);    
 ?>
 </div>
-     <div class="col-sm-2">Afectar en el periodo:<br />
-       <?php
-         $select = $form->get('idCal');
-        echo $this->formSelect($select);
-        echo $this->formElementErrors($select);
-       ?>      
+     <div class="col-sm-4">Codigo de enfermedad:<br />
+<?php
+    $select = $form->get('tipo2');
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+?>
+
       </div>
 </div>
 <hr />
