@@ -17,7 +17,7 @@ $formLabel = $this->plugin('formLabel');
         <tr>
             <td><?php echo ltrim($dato["CedEmp"]); ?></td>            
             <td><?php echo $dato["nomEmp"].' '.$dato["apellido"]; ?>
-            <?php if ($dato["conAut"]==1 ){
+            <?php if ($dato["conAut"]>=1 ){
              echo $this->render('layout/iok');                  
             }?>
             </td>

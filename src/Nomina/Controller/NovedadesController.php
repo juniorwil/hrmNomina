@@ -146,7 +146,8 @@ class NovedadesController extends AbstractActionController
              $arreglo[$idc]= $nom;
          }
       }              
-      $form->get("idCal")->setValueOptions($arreglo);                         
+      if ($arreglo!='')
+         $form->get("idCal")->setValueOptions($arreglo);                         
       //      
       $datos = $d->getGeneral1("select tipo from n_tip_matriz where id = ".$id);
       $tipo = $datos['tipo']; 

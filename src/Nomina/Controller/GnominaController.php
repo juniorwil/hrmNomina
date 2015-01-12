@@ -34,7 +34,7 @@ class GnominaController extends AbstractActionController
     private $lin  = "/nomina/gnomina/list"; // Variable lin de acceso  0 (C)
     private $tlis = "Nominas activas"; // Titulo listado
     private $tfor = "Generación de la nomina"; // Titulo formulario
-    private $ttab = "Tipo de nomina, Periodo, Tipo de calendario, Grupo, Empleados ,Estado, Personal, Pdf,Regenerar,Eliminar"; // Titulo de las columnas de la tabla
+    private $ttab = "Tipo de nomina, Periodo, Tipo de calendario, Grupo, Empleados ,Estado, Personal, Retefuente, Prenomina,Regenerar,Eliminar"; // Titulo de las columnas de la tabla
     
     // Listado de registros ********************************************************************************************
     public function listAction()
@@ -389,7 +389,13 @@ class GnominaController extends AbstractActionController
    	       $connection->beginTransaction();
                // REGISTRO LIBRO DE CESANTIAS
                //$c->delRegistro($id); 
-               // Borrar tablas inferiores               
+               // Borrar tablas inferiores      
+                        
+               $datos = $d->getGeneral1("select id from n_nomina_e_rete where idNom = ".$id." order by id limit 1"); // Obtener el id de generacion 
+               $d->modGeneral("delete from n_nomina_e_rete where idNom=".$id); 
+               if ( $datos['id'] > 0) 
+                   $d->modGeneral("alter table n_nomina_e_rete auto_increment = ".$datos['id'] ); 
+
                $datos = $d->getGeneral1("select id from n_pg_embargos where idNom = ".$id." order by id limit 1"); // Obtener el id de generacion 
                $d->modGeneral("delete from n_pg_embargos where idNom=".$id); 
                if ( $datos['id'] > 0) 
@@ -1114,7 +1120,7 @@ class GnominaController extends AbstractActionController
              $calc    = 0;
              $ano     = $dato['ano'];   // Año
              $mes     = $dato['mes'];   // Mes                           			 
-			 $ded = $r->getReteConc($iddn, $ide);
+			       $ded = $r->getReteConc($iddn, $ide); // Procedimiento para guardar la retencion
 			 
              // Llamado de funion -------------------------------------------------------------------
              $n->getNomina($id, $iddn, $idin, $ide ,$diasLab, $diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 0,$dev,$ded,$idfor,$diasLabC,0,$calc,$conVac, $obId);              

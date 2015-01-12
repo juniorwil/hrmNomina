@@ -37,6 +37,15 @@ echo $this->render('layout/inuevo') ?></a>
              ?>                              
             </td>              
             <td>
+             <?php if ($dato["tipo"]==0) // Nomina normal 
+                {     
+                  $this->idR = 6; // Id del reporte
+                }
+                $this->idP = $dato["id"];
+                echo $this->render('layout/ipdf'); // Fin parametros 
+             ?>                              
+            </td>                          
+            <td>
                 <a href="<?php echo $this->basePath() ?><?php echo $this->lin?>rg/<?php echo $dato["id"]?>"> <?php echo $this->render('layout/ieliminar') ?> </a>
             </td>                        
             <td>
@@ -48,7 +57,7 @@ echo $this->render('layout/inuevo') ?></a>
 <?php echo $this->render('layout/tabla_p') ?>
    
 <?php 
-$this->ncol='null,null,null,null,null,null,null,null,';
+$this->ncol='null,null,null,null,null,null,null,null,null,';
 echo $this->render('layout/tabla_tb') ?>   
         
         
