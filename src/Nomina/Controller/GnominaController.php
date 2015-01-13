@@ -34,7 +34,7 @@ class GnominaController extends AbstractActionController
     private $lin  = "/nomina/gnomina/list"; // Variable lin de acceso  0 (C)
     private $tlis = "Nominas activas"; // Titulo listado
     private $tfor = "Generación de la nomina"; // Titulo formulario
-    private $ttab = "Tipo de nomina, Periodo, Tipo de calendario, Grupo, Empleados ,Estado, Personal, Retefuente, Prenomina,Regenerar,Eliminar"; // Titulo de las columnas de la tabla
+    private $ttab = "Tipo de nomina, Periodo, Tipo de calendario, Grupo, Empleados ,Estado, Personal, Prenomina, Retefuente,Regenerar,Eliminar"; // Titulo de las columnas de la tabla
     
     // Listado de registros ********************************************************************************************
     public function listAction()

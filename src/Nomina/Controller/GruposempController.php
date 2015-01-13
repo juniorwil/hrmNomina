@@ -68,7 +68,10 @@ class GruposempController extends AbstractActionController
            
       // Empleados
       $arreglo='';
-      $datos = $d->getEmp(''); 
+      $datos = $d->getGeneral(' select a.*, case when b.id is null then 0 else 1 end 
+                                from a_empleados a
+                                    left join n_tipemp_p b on b.idEmp = a.id 
+                                    where activo=0 and ( case when b.id is null then 0 else 1 end ) = 0 '); 
       foreach ($datos as $dat){
          $idc=$dat['id'];$nom=$dat['CedEmp'].' - '.$dat['nombre'].' '.$dat['apellido'];
          $arreglo[$idc]= $nom;
@@ -87,7 +90,7 @@ class GruposempController extends AbstractActionController
                                           a.CedEmp, a.nombre, a.apellido, a.fecIng, b.fecha   
                                           from a_empleados a 
                                               inner join n_tipemp_p b on b.idEmp = a.id 
-                                              where a.idTemp=".$id),
+                                              where b.idTemp=".$id),
            "ttablas" =>  "Cedula, Nombres y apellidos, Fecha de ingreso empresa, Fecha ingreso grupo, Eliminar",                   
            "lin"     => $this->lin
       );       
@@ -105,7 +108,8 @@ class GruposempController extends AbstractActionController
             // Buscar id del tipo del tipo de novedad
             $d=new AlbumTable($this->dbAdapter);
             $datos = $d->getGeneral1("select idTemp from n_tipemp_p where id = ".$id); 
-            $d->modGeneral("delete from n_tipemp_p where id = ".$id); 
+            $d->modGeneral("delete from n_tipemp_p where idTemp = ".$datos['idTemp']); 
+            $d->modGeneral("delete from n_tipemp where id = ".$datos['idTemp']); 
             
             return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin.'a/'.$datos['idTemp']);
           }          
