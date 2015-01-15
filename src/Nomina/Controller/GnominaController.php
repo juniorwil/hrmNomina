@@ -434,7 +434,8 @@ class GnominaController extends AbstractActionController
 
                $datos = $d->getGeneral1("select id from n_nomina_e where idNom = ".$id." order by id limit 1"); // Obtener el id de generacion 
                $d->modGeneral("delete from n_nomina_e where idNom=".$id); 
-               $d->modGeneral("alter table n_nomina_e auto_increment = ".$datos['id'] ); 
+               if ( $datos['id'] > 0)  
+                   $d->modGeneral("alter table n_nomina_e auto_increment = ".$datos['id'] ); 
 
                $datos = $d->modGeneral("delete from n_nomina where id=".$id); 
                $d->modGeneral("alter table n_nomina auto_increment = ".$id);

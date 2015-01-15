@@ -16,6 +16,9 @@ use Principal\Model\ValFormulario;  // Validaciones de entradas de datos
 use Principal\Model\AlbumTable;     // Libreria de datos
 use Principal\Form\FormPres;        // Componentes especiales para los prestamos
 
+use Principal\Model\Pgenerales; // Parametros generales
+
+
 class VacacionesController extends AbstractActionController
 {
     public function indexAction()
@@ -25,7 +28,7 @@ class VacacionesController extends AbstractActionController
     private $lin  = "/nomina/vacaciones/list"; // Variable lin de acceso  0 (C)
     private $tlis = "Registro de vacaciones "; // Titulo listado
     private $tfor = "Documento de vacaciones"; // Titulo formulario
-    private $ttab = "Fecha,Cedula,Empleado,Cargo,Desde, Hasta ,Estado, Pdf, Editar,Eliminar"; // Titulo de las columnas de la tabla
+    private $ttab = "id,Fecha,Cedula,Empleado,Cargo,Desde, Hasta ,Estado, Pdf, Editar,Eliminar"; // Titulo de las columnas de la tabla
 
     // Listado de registros ********************************************************************************************
     public function listAction()
@@ -137,7 +140,12 @@ class VacacionesController extends AbstractActionController
         if ($request->isPost()) {
             $data = $this->request->getPost();
             $diasVac = $data->total; // Dias solicitados para vacaciones
-            
+
+            // Parametros generales
+            $pn = new Pgenerales( $this->dbAdapter );
+            $dp = $pn->getGeneral1(1);
+            $dia31 = $dp['dia31'];// Si el 31 se tiene en cuenta para disfrute de vacaciones
+
             // Buscar fecha de ultima salida a vacaciones                        
             $fecha = date_create($data->fecsal);
             // Buscar centro de costo 
@@ -158,20 +166,27 @@ class VacacionesController extends AbstractActionController
               $swI=1;                  
               $fecReg = date_format($fecha, 'Y-m-d');              
               
-              if ( substr($fecReg,8,2)!=31) // Si 31 no se suma 
-                   $diasCal = $diasCal + 1;  
-              
+              if ( $dia31 == 0 )
+              {
+                  if ( substr($fecReg,8,2)!=31) // Si 31 no se suma 
+                     $diasCal = $diasCal + 1;  
+              }
+
               if ( (substr($fecReg,8,2)==28) and (substr($fecReg,5,2)==02) ) // Si febrero dos dia segun año
-                   $diasCal = $diasCal + 2;  
+                   $diasCal = $diasCal + 2; 
+
               if ( (substr($fecReg,8,2)==29) and (substr($fecReg,5,2)==02) ) // Si febrero un dia segun año
                    $diasCal = $diasCal + 1;                
               
               //echo $fecReg.'-'.substr($fecReg,8,2).' : '.$diasCal.' <br />';         
               
               $diaSemana = $this->diaSemana(substr($fecReg,0,4), substr($fecReg,5,2) , substr($fecReg,8,2)); // Devuelve el dia de semana
-              if ( substr($fecReg,8,2)!=31) // Si 31 no se suma 
-              {
-               
+              $dia3 = 31;
+              if ( $dia31 == 1 )
+                 $dia3 = 99; // Truco si el dia 31 hace parte del disfrute 
+
+              if ( substr($fecReg,8,2)!=$dia3) // Si 31 no se suma 
+              {               
                  if ($diaSemana==0)// Domingo
                  {
                     if ($datDom['domingo']==1) // Si es un es un dia habil
@@ -191,24 +206,66 @@ class VacacionesController extends AbstractActionController
                  {
                     //echo $fecReg.'  <br /> ';
                     $daNh = $d->getConfHn($fecReg); // Verficar si no esta marcado como dia no habil
+                    //echo $fecReg.' - '.$dias.'<br /> ';
                     if ($daNh=='')
                     {
                        $diasH++;$dias++;
-                       ///echo $fecReg.' - '.$diasH.'  '.$dias.'<br /> ';
+                       //echo $fecReg.' - '.$diasH.'  '.$dias.'<br /> ';
                     }  
                     else
+                    {
                        $diasNh++;
+                       //echo 'Dia no habil normal : '.$fecReg.' - '.$diasNh.'<br /> ';                       
+                    }
                   }             
                   if ($dias==$diasVac)// Cuando se cumplan los dias de vacaciones pedidos
+                  {
                      $sw=1;
+                     // Validar en que cae retorno 
+                     //echo $fecReg;   
+                   }
                 }// Dia 31 no se cuenta 
               
             } // Fin recorrido dias de vacaciones 
-            
-            // Calcular el dia real de regeso
 
+            // ****------------------------------------------------------------------------
+            // CALCULAR DIA DE REGRESO ---------------------------------------------------
+            //-------------------****************------------------------
+//echo 'efcha de regreso: '.$fecReg;
+            $fechaT = $fecha;
             date_add($fecha, date_interval_create_from_date_string(' 1 days')); 
             $fecRegR = date_format($fecha, 'Y-m-d');  
+            // Evaluar si el dia de regreso es 31 o un dia no habil
+            if ( $dia31 == 0 )
+            {
+               if ( substr($fecRegR,8,2)==31) // Si 31 no se suma
+               {
+                   date_add($fechaT, date_interval_create_from_date_string(' 1 days'));                 
+                   $fecRegR = date_format($fechaT, 'Y-m-d'); $diasNh++;  
+                }
+            }   
+              
+            $diaSemana = $this->diaSemana(substr($fecRegR,0,4), substr($fecRegR,5,2) , substr($fecRegR,8,2)); // Devuelve el dia de semana            
+            if ($diaSemana==0)// Domingo
+            {
+              if ($datDom['domingo']!=1) // Si no es un es un dia habil no se puede regresar ese dia a trabajar
+                 {                       
+                     date_add($fechaT, date_interval_create_from_date_string(' 1 days')); 
+                     $fecRegR = date_format($fechaT, 'Y-m-d');   $diasNh++;                     
+                 }
+            }
+            if ($diaSemana==6)// Sabado
+            {
+              if ($datSab['sabado']!=1) // Si no es un es un dia habil no se puede regresar ese dia a trabajar
+                 {                       
+                     date_add($fechaT, date_interval_create_from_date_string(' 1 days')); 
+                     $fecRegR = date_format($fechaT, 'Y-m-d');                        
+                 }
+
+            }            
+            // Verificar si es festivo
+
+
             //echo $fecReg;            
             
             // --
@@ -222,9 +279,9 @@ class VacacionesController extends AbstractActionController
               "datEmp"  => $d->getEmp(" and id=".$data->idEmp),                
               "fecReg"  => $fecReg,      
               "fecRegR"  => $fecRegR,      
-              "diasHab" => $dias,
-              "diasNhab"=> $diasNh,
-              "diasCal" => $diasCal,  
+              "diasHab" => $dias, // Dias habiles
+              "diasNhab"=> $diasNh, // Dias no habiles
+              "diasCal" => $diasCal, // Dias calendario  
               "dias"    => $data->total,                  
             );      
            $view = new ViewModel($valores);        

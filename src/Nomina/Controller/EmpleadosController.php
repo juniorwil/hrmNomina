@@ -66,7 +66,7 @@ class EmpleadosController extends AbstractActionController
         $this->dbAdapter=$this->getServiceLocator()->get('Zend\Db\Adapter');
         $d=new AlbumTable($this->dbAdapter);
         // Si es por busqueda
-        $con = '" and c.id=".$id';
+        $con = ' and c.id='.$id;
         $bus = 0;
         if($this->getRequest()->isPost()) // Actulizar datos
         {
@@ -278,7 +278,8 @@ class EmpleadosController extends AbstractActionController
       $foto = 0; 
       $f = new NominaFunc($this->dbAdapter);
       // ------------------------ Fin valores del formulario 
-      $datos="";      
+      $datos="";   
+      $idTcon = '';   
       $form->get("sueldo")->setAttribute("readOnly", true );       
       if($this->getRequest()->isPost()) // Actulizar datos
       {
@@ -350,6 +351,7 @@ class EmpleadosController extends AbstractActionController
             $u=new Empleados($this->dbAdapter); // ---------------------------------------------------------- 4 FUNCION DENTRO DEL MODELO (C)          
             $datos = $u->getRegistroId($id);
             $foto = $datos['foto'];
+            $idTcon = $datos['IdTcon'];
             // Valores guardados
             $form->get("cedula")->setAttribute("value",$datos['CedEmp']); 
             $form->get("nombre")->setAttribute("value",$datos['nombre']); 
@@ -430,7 +432,7 @@ class EmpleadosController extends AbstractActionController
           'datCon'  => $d->getGeneral("select * from n_emp_contratos where idEmp=".$id),// Contratos 
           'url'     => $this->getRequest()->getBaseUrl(),
           'id'      => $id,
-          'idTcon'  => $datos['IdTcon'],
+          'idTcon'  => $idTcon,
           'datos'   => $datos,  
           'foto'    => $foto,  // 0 no maneja foto , 1 si maneja foto
           "lin"     => $this->lin

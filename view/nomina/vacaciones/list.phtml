@@ -23,6 +23,7 @@
 
     <?php foreach ($this->datos as $dato){ ?>
         <tr>
+            <td><?php echo $dato["id"] ?></td>            
             <td><?php echo $dato["fecDoc"] ?></td>
             <td><?php echo $dato["CedEmp"] ?></td>
             <td><?php echo $dato["nombre"].' '.$dato["apellido"] ?></td>
@@ -57,5 +58,5 @@
 <?php echo $this->render('layout/tabla_p') ?>
     
 <?php 
-$this->ncol='null,null,null,null,null,null,null,null,';
+$this->ncol='null,null,null,null,null,null,null,null,null,';
 echo $this->render('layout/tabla_tb') ?>        
