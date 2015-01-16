@@ -62,7 +62,7 @@ echo $this->form()->openTag($form);
   <th>Valor cuota</th>
 </tr>
 <?php 
-$valorT = 0;$cuotaT = 0;
+$valorT = 0;$cuotaT = 0;$pagado=0;
 foreach ($this->datTnom as $dato){ ?>
 <tr> 
     <td><?php echo $dato['nomTnom']?></td>
@@ -100,6 +100,8 @@ foreach ($this->datTnom as $dato){ ?>
 <?php 
 $valorT = $valorT + $dato['valor'];
 $cuotaT = $cuotaT + $dato['cuotas'];
+if ( $dato['pagado']>0 )
+    $pagado = $dato['pagado'];
 }?>
 
 <tr> 
@@ -117,8 +119,16 @@ $cuotaT = $cuotaT + $dato['cuotas'];
 
     </td>
 </tr>
-
 </table>
+<?php if ( $pagado > 0){ ?>
+<i class="fa fa-flag green bigger-130"></i>
+<?php  echo '<strong>VALOR ABONADO: $ '.number_format( $pagado )."</strong><br />";?>
+
+<hr />
+<i class="fa fa-flag red bigger-130"></i>
+<?php 
+       echo '<strong>SALDO PENDIENTE: $ '.number_format( $valorT - $pagado )."</strong><br />";
+  } ?>
 <hr />
 <div class="control-group">
     <?php echo ($this->formRow($form->get('comen'))); ?>
