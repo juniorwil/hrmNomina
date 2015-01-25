@@ -13,6 +13,7 @@ use Principal\Model\ValFormulario;     // Validaciones de entradas de datos
 use Principal\Model\AlbumTable;        // Libreria de datos
 use Nomina\Model\Entity\Tipinca; // (C)
 use Nomina\Model\Entity\TipincaC; // (C)
+use Nomina\Model\Entity\TipincaR; // (C)
 
 class TipincaController extends AbstractActionController
 {
@@ -66,6 +67,7 @@ class TipincaController extends AbstractActionController
       }              
       $form->get("idConcM")->setValueOptions($arreglo);                                                 
       $form->get("idConcM2")->setValueOptions($arreglo);                                                 
+      $form->get("tipoM")->setValueOptions($arreglo);                                                 
       $this->dbAdapter=$this->getServiceLocator()->get('Zend\Db\Adapter');
       $datos=0;
       $valores=array
@@ -100,7 +102,7 @@ class TipincaController extends AbstractActionController
                    $u->actRegistro($data);             
                    $id = $data->id;
                 }
-                // Eliminar registros 
+                // Eliminar registros conceptos 
                 $f    = new TipincaC($this->dbAdapter);// ------------------------------------------------- 3 FUNCION DENTRO DEL MODELO (C)  
                 $d->modGeneral("Delete from n_tipinc_c where idTinc=".$id);                 
                 $i=0;
@@ -113,6 +115,15 @@ class TipincaController extends AbstractActionController
                   $idConc = $data->idConcM2[$i];$i++;           
                   $f->actRegistro($idConc,$id,2);                
                 }                                           
+                // Eliminar registros conceptos conceptos para descuento empleados
+                $f    = new TipincaR($this->dbAdapter);// ------------------------------------------------- 3 FUNCION DENTRO DEL MODELO (C)  
+                $d->modGeneral("Delete from n_tipinc_r where idTinc=".$id);                 
+                $i=0;
+                foreach ($data->tipoM as $dato){
+                  $idConc = $data->tipoM[$i];$i++;           
+                  $f->actRegistro($idConc,$id);                
+                }                           
+                $i=0;
                 $this->flashMessenger()->addMessage('');
                 return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin);
             }
@@ -129,6 +140,8 @@ class TipincaController extends AbstractActionController
             $form->get("nombre")->setAttribute("value",$datos['nombre']); 
             $form->get("numero")->setAttribute("value",$datos['dias']); 
             $form->get("valor")->setAttribute("value",$datos['diasFijos']); 
+            $form->get("numero1")->setAttribute("value",$datos['diasP']);             
+            $form->get("numero2")->setAttribute("value",$datos['diasPv']);                         
             
             // Conceptos asociados a la matriz
             $d = New AlbumTable($this->dbAdapter);            
@@ -143,7 +156,14 @@ class TipincaController extends AbstractActionController
             foreach ($datos as $dat){
               $arreglo[]=$dat['idConc'];
             }                
-            $form->get("idConcM2")->setValue($arreglo);                                   
+            $form->get("idConcM2")->setValue($arreglo);                      
+            // Conceptos para descuento pagado de mas
+            $datos = $d->getGeneral(' select * from n_tipinc_r where  idTinc='.$id);// Conceptos empresa
+            $arreglo='';            
+            foreach ($datos as $dat){
+              $arreglo[]=$dat['idConc'];
+            }                
+            $form->get("tipoM")->setValue($arreglo);                                                
             //
          }            
          return new ViewModel($valores);

@@ -355,72 +355,97 @@ inner join n_nomina_e b on a.id=b.idEmp where a.id=".$ide." and b.idNom=".$idnp)
       $data = $this->request->getPost();
       $idn = $data->idInom; // Es importante para cuando no sea valido un formulario abajo mantenga el id actual             
       $tipoA = $data->tipo;
-      // Nueva novedad
-      if ($tipoA==1)
-      {                             
-         $datos = $d->getGeneral1("Select valor,tipo from n_conceptos where id=".$data->idConc); 
-         $valcon = $datos['valor'];
-         $tipcon = $datos['tipo'];
-         $e->actRegistro($data,$valcon,$tipcon);                    
-      }     
-      // Cambio valores (hora,dev,ded,ccos)
-      if ( ($tipoA==2) or ($tipoA==3) or ($tipoA==4) )
-      { 
-         $e->edRegistro($data);                    
-      }           
-      // Eliminar registro
-      if ( $tipoA==5 ) 
-      { 
-         $e->delRegistro($idn);                    
-      }                 
-      // Cambio de hora
-      if ( $tipoA==6 ) 
-      { 
-         $f->actRegistro($data);                    
-      }                       
-      
-      if ($request->isPost())
+
+      // INICIO DE TRANSACCIONES
+      $connection = null;
+      try 
       {
-         if ($tipoA>0)
-         {
-           // *-------------------------------------------------------------------------------
-           // ----------- RECALCULO DE DOCUMENTO DE NOMINA -----------------------------------
-           // *-------------------------------------------------------------------------------
-           $datos2 = $u->getDocNove($idn, " and b.tipo in ('0','1','3')" );// Insertar nov automaticas ( n_nomina_e_d ) por tipos de automaticos                                                  
-           foreach ($datos2 as $dato)
-           {         
-             $id = $data->idNom; // Id nomina  
-             $iddn    = $idn;            // Id dcumento de novedad
-             $idin    = $dato['id'];      // Id novedad
-             $ide     = $dato['idEmp'];   // Id empleado
-             $diasLab = $dato['dias'];    // Dias laborados 
-             $diasVac = $dato['diasVac'];    // Dias vacaciones
-             $horas   = $dato["horas"];   // Horas laborados 
-             $formula = $dato["formula"]; // Formula
-             $tipo    = $dato["tipo"];    // Devengado o Deducido  
-             $idCcos  = $dato["idCcos"];  // Centro de costo   
-             $idCon   = $dato["idCon"];   // Concepto
-             $dev     = $dato["devengado"];     // Devengado
-             $ded     = $dato["deducido"];     // Deducido  
-             $idfor   = $dato["idFor"];   // Id de la formula   
-             $diasLabC= $dato["horDias"];   // Si se afecta el cambio de dias laborados en el registro 
-             // Caso especial cuando cambian la hroa, se buscan conceptos automaticos que sean afectados por dias laborados
-             if ( ($tipo==1) and ($tipoA==6) ) // Solo aplica para automaticos el cambio de dai para calcular las horas
-             {                 
-                if ($diasLabC==1) 
-                {
-                   $diasLab = $data->valor; 
-                   $horas   = $diasLab*8; //Horas por dia
-                }
-             }
-             // Llamado de funion -------------------------------------------------------------------
-             $n->getNomina($id, $iddn, $idin, $ide ,$diasLab,$diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 1, 2,$dev,$ded,$idfor,$diasLabC,0,0,0,0);                                                       
-          }
-         }
-        //$n->getRecalculo($idn);         
-         
-      }
+          $connection = $this->dbAdapter->getDriver()->getConnection();
+          $connection->beginTransaction();                
+
+          // Nueva novedad
+          if ($tipoA==1)
+          {                             
+              $datos = $d->getGeneral1("Select valor,tipo from n_conceptos where id=".$data->idConc); 
+              $valcon = $datos['valor'];
+              $tipcon = $datos['tipo'];
+              $e->actRegistro($data,$valcon,$tipcon);                    
+          }     
+          // Cambio valores (hora,dev,ded,ccos)
+          if ( ($tipoA==2) or ($tipoA==3) or ($tipoA==4) )
+          { 
+              $e->edRegistro($data);                    
+          }           
+          // Eliminar registro
+          if ( $tipoA==5 ) 
+          { 
+              $e->delRegistro($idn);                    
+          }                 
+          // Cambio de hora
+          if ( $tipoA==6 ) 
+          { 
+              $f->actRegistro($data);                    
+          }                       
       
+          if ($request->isPost())
+          {
+              if ($tipoA>0)
+              {
+                   // *-------------------------------------------------------------------------------
+                   // ----------- RECALCULO DE DOCUMENTO DE NOMINA -----------------------------------
+                   // *-------------------------------------------------------------------------------
+                   $datos2 = $u->getDocNove($idn, " and b.tipo in ('0','1','3')" );// Insertar nov automaticas ( n_nomina_e_d ) por tipos de automaticos                                                  
+                   foreach ($datos2 as $dato)
+                   {         
+                        $id = $data->idNom; // Id nomina  
+                        $iddn    = $idn;            // Id dcumento de novedad
+                        $idin    = $dato['id'];      // Id novedad
+                        $ide     = $dato['idEmp'];   // Id empleado
+                        $diasLab = $dato['dias'];    // Dias laborados 
+                        $diasVac = $dato['diasVac'];    // Dias vacaciones
+                        $horas   = $dato["horas"];   // Horas laborados 
+                        $formula = $dato["formula"]; // Formula
+                        $tipo    = $dato["tipo"];    // Devengado o Deducido  
+                        $idCcos  = $dato["idCcos"];  // Centro de costo   
+                        $idCon   = $dato["idCon"];   // Concepto
+                        $dev     = $dato["devengado"];     // Devengado
+                        $ded     = $dato["deducido"];     // Deducido  
+                        $idfor   = $dato["idFor"];   // Id de la formula   
+                        $diasLabC= $dato["horDias"];   // Si se afecta el cambio de dias laborados en el registro 
+                        // Caso especial cuando cambian la hroa, se buscan conceptos automaticos que sean afectados por dias laborados
+                        if ( ($tipo==1) and ($tipoA==6) ) // Solo aplica para automaticos el cambio de dai para calcular las horas
+                        {                 
+                           if ($diasLabC==1) 
+                           {
+                               $diasLab = $data->valor; 
+                               $horas   = $diasLab*8; //Horas por dia
+                           }
+                        }
+                        // Llamado de funion -------------------------------------------------------------------
+                        $n->getNomina($id, $iddn, $idin, $ide ,$diasLab,$diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 1, 2,$dev,$ded,$idfor,$diasLabC,0,0,0,0);                                                       
+                    }
+                    // Guardar dias laborador en novedades
+                    $datNom = $d->getGeneral1("select idCal, idGrupo from n_nomina where id =".$id);
+
+                    $d->modGeneral("delete from n_nomina_nov where idEmp=".$ide." and diasLab>0");
+                    
+                    $d->modGeneral("insert into n_nomina_nov (idEmp, idCal, idGrupo, diasLab ) 
+                                  values(".$ide.", ".$datNom['idCal'].", ".$datNom['idGrupo'].", ".$diasLab." )");
+              }
+           }
+           //$n->getRecalculo($idn);                  
+      
+           $connection->commit();                   
+           $this->flashMessenger()->addMessage('');                         
+        }// Fin try casth   
+        catch (\Exception $e) 
+        {
+           if ($connection instanceof \Zend\Db\Adapter\Driver\ConnectionInterface) {
+              $connection->rollback();
+              echo $e;
+          } 
+              /* Other error handling */
+        }// FIN TRANSACCION                                          
       
       // Buscar constantes de funciones
       $valores=array

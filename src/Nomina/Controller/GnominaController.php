@@ -177,7 +177,7 @@ class GnominaController extends AbstractActionController
                 $connection = null;
                 try {
                     $connection = $this->dbAdapter->getDriver()->getConnection();
-   	            $connection->beginTransaction();                
+   	                $connection->beginTransaction();                
                     // Generacion tabla de n_nomina  cabecera
                     $id = $u->actRegistro($data,$fechaI,$fechaF,$idCal,$dias,$idGrupo);
                     // Inactiva tipo nomina 
@@ -250,17 +250,17 @@ class GnominaController extends AbstractActionController
                                {  
                                    $dias = $datVac['periF'] ;// Dias a pagar   
                                    $salVac = 1;
-							   }                                                               
+							                 }                                                               
                                $diasVac = 0; // Ya no se muestran mas los dias de vacacines    
                            }
                            if ($salVac>0)		
-						   {				   
+ 						               {				   
                               $d->modGeneral("update n_nomina_e set dias = ".$dias.", diasVac=0, actVac=0  where id=".$iddn);
-							  $d->modGeneral("update a_empleados set vacAct = 2  where id=".$idEmp); // Regreso de vacaciones
-						   }
-						   else {
-							  $d->modGeneral("update n_nomina_e set dias = ".$dias.", diasVac=".$diasVac."  where id=".$iddn); 
-						   }  							
+							                $d->modGeneral("update a_empleados set vacAct = 2  where id=".$idEmp); // Regreso de vacaciones
+						               }
+						               else {
+							                $d->modGeneral("update n_nomina_e set dias = ".$dias.", diasVac=".$diasVac."  where id=".$iddn); 
+						               }  							
                         }       
                     } // Fin validacion vacaciones
                     // VALIDAR INCAPACIDADES -----------------------------------
@@ -274,17 +274,17 @@ class GnominaController extends AbstractActionController
                         $diasAp  = $dat['diasAp'];
                         $diasDp  = $dat['diasDp'];						
                         
-			if ( $dat['reportada'] == 1)// Si esta reportada anteriormente no se toman dias anteriores
+			                  if ( $dat['reportada'] == 1)// Si esta reportada anteriormente no se toman dias anteriores
                            $diasAp = 0;
                         
                         if ( ( $diasAp + $diasDp ) > ( $dias ) )
                             $diasI = 0;
-			else 
-  			    $diasI = ( $diasAp + $diasDp ) ;// Dias de incapacidad
+			                  else 
+  			                    $diasI = ( $diasAp + $diasDp ) ;// Dias de incapacidad
   						  						                                
-  			$dias = $dias - $diasI;		  						                                
+  			                $dias = $dias - $diasI;		  						                                
                         $d->modGeneral("update n_nomina_e set dias=".$dias.", diasI=".$diasI." where id=".$iddn);
-						# Se marca idInc con una 1 para saber que ese empleado tiene incapacidad registrada 
+						            # Se marca idInc con una 1 para saber que ese empleado tiene incapacidad registrada 
                                                     
                     } // Fin validacion incapacidad
                     
@@ -293,22 +293,33 @@ class GnominaController extends AbstractActionController
                     foreach($datAus as $dat)
                     {
                         $iddn = $dat['id'];
-						$idEmp = $dat['idEmp'];
+						            $idEmp = $dat['idEmp'];
                         $dias = $dat['diasH'] - $dat['diasAus'];# Dias de ausentismos no remunerado
                         $aus = 1;                    
-						if ($dias > 0) // Si regreso en el priodo se activa a empleado de neuvo 
-						{
-						   $aus = 0;// Se sca el estado de ausentismo;	
-						}                    
+						            if ($dias > 0) // Si regreso en el priodo se activa a empleado de neuvo 
+						            {
+						                $aus = 0;// Se sca el estado de ausentismo;	
+						            }                    
                         $d->modGeneral("update n_nomina_e set idAus=".$dat['idAus'].", aus=".$aus.", dias=".$dias." where id=".$iddn);						
 						
-						if ($dias > 0) // Si regreso en el priodo se activa a empleado de nuevo 
-						{
-						   $d->modGeneral("update a_empleados set idAus = 0 where id=".$idEmp );   
-						}
-						                         
+						            if ($dias > 0) // Si regreso en el priodo se activa a empleado de nuevo 
+						            {
+						                $d->modGeneral("update a_empleados set idAus = 0 where id=".$idEmp );   
+						            }						                         
                     } // Fin validacion ausentismos
                     
+
+                    // VALIDAR SI TIENE DIAS DIFERENTES EN UNA NOMINA YA LIQUIDAD                
+                    $datIng = $d->getGeneral("Select diasLab, idEmp  
+                      from n_nomina_nov where diasLab > 0 and idCal = ".$idCal." and idGrupo=".$idGrupo);        
+                    foreach($datIng as $dat)
+                    {
+                        $idEmp = $dat['idEmp'] ;                   
+                        $dias  = $dat['diasLab'] ;                                
+                        $d->modGeneral("update n_nomina_e set dias=".$dias." where idEmp=".$idEmp." and idNom=".$id );                         
+                    } // Fin validacion fecha de ingreso del empleado
+
+
                     $connection->commit();
                     
                     $this->flashMessenger()->addMessage('');

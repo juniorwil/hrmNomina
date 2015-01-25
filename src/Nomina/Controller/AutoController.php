@@ -137,13 +137,14 @@ class AutoController extends AbstractActionController
       $form->get("tipo")->setValueOptions($arreglo);  
       
       $datos = $d->getCencos();// Listado de centros de costos
-      $arreglo = '';
+      $arreglo[0] = 'No aplica';
       foreach ($datos as $dat){
           $idc=$dat['id'];$nom=$dat['nombre'];
           $arreglo[$idc]= $nom;
       }      
       $form->get("idCencos")->setValueOptions($arreglo);        
-      
+      $form->get("idCencos")->setValue(0);        
+
       $datos = $d->getTnom('');// Listado de tipos de nomina
       $arreglo='';
       foreach ($datos as $dat){
@@ -159,7 +160,7 @@ class AutoController extends AbstractActionController
       (
            "titulo"    =>  'Conceptos automaticos ',
            "empleado"  =>  $datos['CedEmp'].' - '.$datos['nombre'].' '.$datos['apellido'],
-           "datos"     =>  $d->getGeneral("select a.id, b.nombre, c.nombre as nomccos,
+           "datos"     =>  $d->getGeneral("select a.id, b.nombre, 
                                        case a.horasCal when 1 then 'Horas del calendario' 
                                        when 0 then a.valor end as horas, case a.cCosEmp when 1 then 'Centro de costo empleado' 
                                        when 0 then c.nombre end as nomCcos, d.id as idCa , e.nombre as nomTnom 

@@ -103,6 +103,8 @@ class IncapacidadController extends AbstractActionController
       (
            "titulo"  => $this->tfor,
            "form"    => $form,
+           "datosP"  => $d->getGeneral('SELECT * FROM n_incapacidades_pro where idInc='.$id),         
+           "datosTp" => $d->getGeneral1('SELECT count(id) as numP FROM n_incapacidades_pro where idInc='.$id),                    
            'url'     => $this->getRequest()->getBaseUrl(),
            'id'      => $id,
            'datos'   => $datos,  
@@ -180,6 +182,9 @@ class IncapacidadController extends AbstractActionController
             $form->get("fechaFin")->setAttribute("value",$datos['fechaf']); 
             $form->get("tipo2")->setAttribute("value",$datos['codEnf']); 
             $form->get("estado")->setAttribute("value",$datos['estado']); 
+            // Para las prorogas
+            $form->get("id2")->setAttribute("value",$id); 
+            $form->get("id3")->setAttribute("value",$datos['idEmp']); 
          }            
          return new ViewModel($valores);
       }
@@ -202,6 +207,46 @@ class IncapacidadController extends AbstractActionController
             return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin);
           }          
    }
+
+
+   // Eliminar dato de prorogra ********************************************************************************************
+   public function listpdAction() 
+   {
+      $id = (int) $this->params()->fromRoute('id', 0);
+      if ($id > 0)
+         {
+            $this->dbAdapter=$this->getServiceLocator()->get('Zend\Db\Adapter');
+            $d=new AlbumTable($this->dbAdapter);  // ---------------------------------------------------------- 5 FUNCION DENTRO DEL MODELO (C)         
+            $data = $this->request->getPost();       
+            $datos = $d->getGeneral1("select idInc from n_incapacidades_pro where id = ".$id);            
+            $idInc = $datos['idInc'];            
+            $d->modGeneral( "delete from n_incapacidades_pro where id=".$id);
+            return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin.'a/'.$idInc);
+          }          
+   }
+
+   // Nueva prorroga *********************************************************************************************
+   public function listapAction() 
+   {     
+      if($this->getRequest()->isPost()) // Actulizar datos
+      {
+        $request = $this->getRequest();
+        if ($request->isPost()) {
+            // Zona de validacion del fomrulario  --------------------
+            $album = new ValFormulario();
+            $this->dbAdapter=$this->getServiceLocator()->get('Zend\Db\Adapter');
+            // Actualizar empleado                 
+            $d = New AlbumTable($this->dbAdapter);                  
+            $data = $this->request->getPost();
+            //print_r($data);
+            $d->modGeneral("insert into n_incapacidades_pro (idInc, idEmp, fechai, fechaf, comen ) values (".$data->id2.",".$data->id3.",'".$data->fecIng."','".$data->fecIng2."','".$data->comenN."')" );                 
+            $this->flashMessenger()->addMessage('');                 
+            return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin.'a/'.$data->id2);
+        }
+      }
+   } // Fin actualizar datos de prorrogas
+
+
 
    // VALIDACION DEL PERIODO PARA GUARDADO DE DATOS
    public function listgAction() 

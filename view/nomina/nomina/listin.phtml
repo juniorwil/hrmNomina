@@ -37,7 +37,9 @@ Agregar una novedad:
      echo $this->formInput($name);
      echo $this->formElementErrors($name);
   ?>
+  <?php echo $this->formElement($form->get('guardar')) ?>
 </div>
+
 </div>    
 <br />
 
@@ -119,7 +121,8 @@ $('#submitbutton').click(function(){
   });// Fin clic check
  // 
 
-$('#dias').focusout(function(){  
+//$('#dias').focusout(function(){  
+$('#guardar').click(function(){  // Guardar dias 
   var ha  = $("#dias").val();
   // Quitar caracteres especiales y sacar solo el numero del id
         // Cargar documento de novedades para recalculo y otras
@@ -141,6 +144,7 @@ $('#dias').focusout(function(){
              },
            success:  function (response) {
               $("#resultado").html(response); 
+              alert('Días actualizados de forma correcta')
              }
         }); // Fin ajax     
    
