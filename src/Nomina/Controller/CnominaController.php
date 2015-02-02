@@ -101,7 +101,7 @@ class CnominaController extends AbstractActionController
                          where a.vacAct = 2 and b.idVac>0 and b.idNom=".$id);                                                                  
           // Activar regreso de incapacidad empleado pagos por nomina
           $d->modGeneral("update a_empleados c 
-                         inner join n_nomina_e a on a.idEmp = c.id 
+                         inner join n_nomina_e_i a on a.idEmp = c.id 
                          inner join n_nomina b on b.id=a.idNom 
                          inner join n_incapacidades d on d.id=a.idInc 
                          inner join n_tipinc e on e.id = d.idInc  
@@ -111,13 +111,23 @@ class CnominaController extends AbstractActionController
                          
           // Activar regreso de incapacidad empleado pago completo (Eje Maternidad)
           $d->modGeneral("update a_empleados c 
-                         inner join n_nomina_e a on a.idEmp = c.id 
+                         inner join n_nomina_e_i a on a.idEmp = c.id 
                          inner join n_nomina b on b.id=a.idNom 
                          inner join n_incapacidades d on d.id=a.idInc 
                          inner join n_tipinc e on e.id = d.idInc  
                          set c.idInc=0   
                          where e.completa=1 and a.idNom = ".$id." and a.idInc>0 ");// Si la fecha fin de incapacidad es menor que 
                          //la fecha fin de nomina sale de la incapacidad          
+
+          // Reportar incapacidades
+          $d->modGeneral("update n_incapacidades a
+inner join n_nomina_e_i b on b.idInc = a.id set a.reportada=1 where  b.idNom=".$id);                                                                      
+
+          // Activar grupo 
+          $d->modGeneral("update n_grupos a
+             inner join n_nomina b on b.idGrupo = a.id
+             set a.activa=0 where  b.id =".$id);                                                                      
+
           
           // Cerrar cesantias
           $d->modGeneral("update n_cesantias set estado = 2 where idNom=".$id);                                                                      

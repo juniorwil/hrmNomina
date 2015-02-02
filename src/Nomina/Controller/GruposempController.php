@@ -108,9 +108,7 @@ class GruposempController extends AbstractActionController
             // Buscar id del tipo del tipo de novedad
             $d=new AlbumTable($this->dbAdapter);
             $datos = $d->getGeneral1("select idTemp from n_tipemp_p where id = ".$id); 
-            $d->modGeneral("delete from n_tipemp_p where idTemp = ".$datos['idTemp']); 
-            $d->modGeneral("delete from n_tipemp where id = ".$datos['idTemp']); 
-            
+            $d->modGeneral("delete from n_tipemp_p where id = ".$id);             
             return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin.'a/'.$datos['idTemp']);
           }          
    }   

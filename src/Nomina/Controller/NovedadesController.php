@@ -215,7 +215,7 @@ class NovedadesController extends AbstractActionController
              $data = $this->request->getPost();   
              $d = new AlbumTable($this->dbAdapter);         
              $form = new Formulario("form"); 
-             $datos = $d->getGeneral1("select count(id)as num from n_conceptos where valor = 2 and idFor!= 2 and id = ".$data->id);
+             $datos = $d->getGeneral1("select count(idFor) as num from n_conceptos where id = ".$data->id);
              $conFor = $datos['num']; 
       
              $valores=array

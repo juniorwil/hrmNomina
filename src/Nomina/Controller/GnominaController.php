@@ -263,17 +263,23 @@ class GnominaController extends AbstractActionController
 						               }  							
                         }       
                     } // Fin validacion vacaciones
+
+                    $datGen = $d->getConfiguraG(''); // Configuraciones de incapaciades 
                     // VALIDAR INCAPACIDADES -----------------------------------
                     $datInc=$g->getIncapacidades($id); // Extraer datos de la incapacidad del empleado si tuviera
                     foreach($datInc as $dat)
                     {
                         $iddn = $dat['id'];					 
-						
+						           
                         $dias    = $dat['dias'];
                         $diasEnt = $dat['diasEnt'];						
                         $diasAp  = $dat['diasAp'];
                         $diasDp  = $dat['diasDp'];						
-                        
+                        echo ' g '.$datGen['incAtrasada'].'<br />';
+                        // Verificar si esta parametrizado para pagar los dias de incapacida o solo reportarlos
+                        if ( $datGen['incAtrasada']==0)
+                           $diasAp  = 0;
+
 			                  if ( $dat['reportada'] == 1)// Si esta reportada anteriormente no se toman dias anteriores
                            $diasAp = 0;
                         
@@ -281,7 +287,10 @@ class GnominaController extends AbstractActionController
                             $diasI = 0;
 			                  else 
   			                    $diasI = ( $diasAp + $diasDp ) ;// Dias de incapacidad
-  						  						                                
+  						  				
+                        if ( $diasI > 15)
+                             $diasI = 0; 
+
   			                $dias = $dias - $diasI;		  						                                
                         $d->modGeneral("update n_nomina_e set dias=".$dias.", diasI=".$diasI." where id=".$iddn);
 						            # Se marca idInc con una 1 para saber que ese empleado tiene incapacidad registrada 
@@ -646,13 +655,16 @@ class GnominaController extends AbstractActionController
              $diasLabC= 0;   // Dias laborados solo para calculados 
              $conVac  = 0;   // Determinar si en caso de vacaciones formular con dias calendario
              $idPant  = 0;
-             $obId    = 1; // 1 para obtener el id insertado
+             $obId    = 1; // 1 para obtener el id insertado             
              //echo $formula;
              // Llamado de funion -------------------------------------------------------------------
-             $idInom = $n->getNomina($id, $iddn, $idin, $ide ,$diasLab, $diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 0,$dev,$ded,$idfor,$diasLabC,0,0,$conVac,$obId);              
-             $idInom = (int) $idInom;                   
-             // GUARDAR REGISTRO PAGO PRIMA DE ANTIGUEDAD
-             $c->actRegistro($ide, $fechaI, $fechaF, $dev, $idInom , $id, $ano, $dat['id']);
+             if ( $dato['diaI'] == 1) // 0 no esta dentro del periodo, 1 esta dentro del periodo
+             {
+                $idInom = $n->getNomina($id, $iddn, $idin, $ide ,$diasLab, $diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 0,$dev,$ded,$idfor,$diasLabC,0,0,$conVac,$obId);              
+                $idInom = (int) $idInom;                   
+                // GUARDAR REGISTRO PAGO PRIMA DE ANTIGUEDAD
+                $c->actRegistro($ide, $fechaI, $fechaF, $dev, $idInom , $id, $ano, $dat['id']);
+              }
             }
             } 
          } // FIN PRIMA DE ANTIGUEDAD      
@@ -824,15 +836,9 @@ class GnominaController extends AbstractActionController
              $conVac  = $dato["vaca"];   // Determinar si en caso de vacaciones formular con dias calendario
              $obId    = 1; // 1 para obtener el id insertado
              // Llamado de funcion -------------------------------------------------------------------
-	     $sw=0;
-	     if ( ($ide==82) and ($idCon==129) ) // Empanad apara no mostrar auxilio de trans para wilmer OJO quitar
-	         $sw=1;    
-	     if ($sw==0)
-             {
                  $idInom = $n->getNomina($id, $iddn, $idin, $ide ,$diasLab,$diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 1,$dev,$ded,$idfor,$diasLabC,0,0,$conVac,$obId);              
                  $idInom = (int) $idInom;                   
                  $d->modGeneral("update n_nomina_e_d set nitTer='".$dato['nitTer']."' where id=".$idInom);                                           
-             } 
 
          } // FIN TIPOS DE AUTOMATICOS 2 (opcionales)         
          
@@ -897,7 +903,7 @@ class GnominaController extends AbstractActionController
              $idin    = 0;     // Id novedad
              $ide     = $dato['idEmp'];   // Id empleado
              $diasLab = $dato['dias'];    // Dias laborados 
-             $diasVac = 0;    // Dias vacaciones
+             $diasVac = $dato['diasVac'];    // Dias vacaciones
              $horas   = $dato["horas"];   // Horas laborados 
              $formula = $dato["formula"]; // Formula
              $tipo    = $dato["tipo"];    // Devengado o Deducido  
@@ -905,10 +911,21 @@ class GnominaController extends AbstractActionController
              $idCon   = $dato["idCon"];   // Concepto
              $dev     = $dato["dev"];     // Devengado
              $ded     = $dato["ded"];     // Deducido
-             $idfor   = $dato["idFor"];   // Id de la formula 
+             $idfor   = -99;   // Id de la formula no tiene formula asociada, ya viene la formula 
              $diasLabC= 0;   // Dias laborados solo para calculados
              $conVac  = 0;   // Determinar si en caso de vacaciones formular con dias calendario
              $obId    = 1; // 1 para obtener el id insertado
+             // Fomrula para dais mas vacaciones en otros automaticos
+             $valor = 0;
+             if ( $dev > 0 ) 
+             {
+                $valor = $dev;$dev=0;
+             }else
+             {
+                $valor = $ded;$ded=0;
+             }
+             $formula = '($diasLab+$diasVac)*'.$valor; // Concatenan para armar la formula
+             //echo 'ifo  '.$formula;
              // Llamado de funion -------------------------------------------------------------------
              $idInom = $n->getNomina($id, $iddn, $idin, $ide ,$diasLab,$diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 2,$dev,$ded,$idfor,$diasLabC,0,0,$conVac,$obId);              
              $idInom = (int) $idInom;                   

@@ -26,7 +26,7 @@ class PrestaController extends AbstractActionController
     private $lin  = "/nomina/presta/list"; // Variable lin de acceso  0 (C)
     private $tlis = "Prestamos a empleados"; // Titulo listado
     private $tfor = "Documento de solicitud"; // Titulo formulario
-    private $ttab = "Empleado,Fecha, Fecha aprobación, Tipo de prestamo,Estado,Pdf,Cargo,Centro de costos,Valor,Editar,Eliminar"; // Titulo de las columnas de la tabla
+    private $ttab = "id, Empleado,Fecha, Fecha aprobación, Tipo de prestamo,Estado,Pdf,Cargo,Centro de costos,Valor,Editar,Eliminar"; // Titulo de las columnas de la tabla
 
     // Listado de registros ********************************************************************************************
     public function listAction()
@@ -152,13 +152,14 @@ class PrestaController extends AbstractActionController
                 $connection = null;
                 try {
                     $connection = $this->dbAdapter->getDriver()->getConnection();
-   	            $connection->beginTransaction();                
+   	                $connection->beginTransaction();                
                     
                     $idPres = $u->actRegistro($data, $dat['idCar'], $dat['idCcos'], $dat2['idTnom'] );
                     
                     ////// Guardar distribucion de pagos en tipos de nominas //// ---
-                    $datTnom = $d->getGeneral1("select idTpres from n_prestamos where id=".$idPres);
-                    $d->modGeneral("Delete from n_prestamos_tn where idPres=".$idPres);                 
+                    $datTnom = $d->getGeneral1("select idTpres from n_prestamos where id=".$idPres);                    
+
+                    //$d->modGeneral("Delete from n_prestamos_tn where idPres=".$idPres);                 
                     $datos = $d->getPresCuotas($datTnom['idTpres'], $idPres );
                     $f    = new Prestan($this->dbAdapter);
                     $valorT = 0;
@@ -166,11 +167,18 @@ class PrestaController extends AbstractActionController
                         $idLc = $dato['idTnom'];
                         $texto = '$data->valor'.$idLc;                        
                         eval("\$valor = $texto;"); 
+
                         if ($valor > 0) 
                         {
                             $texto = '$data->cuotas'.$idLc;                        
                             eval("\$cuotas = $texto;");                        
-                            $f->actRegistro( $idPres,$idLc,$valor,$cuotas );                       
+                            // Consultar pagos y saldos iniciales del tipo de prestamo
+                            $datTnomPg = $d->getGeneral1("select count(id) as num from n_prestamos_tn where idPres=".$id." and idTnom=".$idLc); 
+                            if ( $datTnomPg['num'] == 0 )
+                               $f->actRegistro( $idPres,$idLc,$valor,$cuotas );                       
+                            else
+                               $d->modGeneral("update n_prestamos_tn 
+                                   set valor=".$valor.", cuotas=".$cuotas.", valCuota =".($valor / $cuotas)." where idPres=".$id." and idTnom=".$idLc);    
                             $valorT = $valorT + $valor;  
                         }
                     }                

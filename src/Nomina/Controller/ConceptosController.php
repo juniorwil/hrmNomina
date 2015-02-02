@@ -208,8 +208,7 @@ class ConceptosController extends AbstractActionController
                 }                
                 $connection->commit();
                 $this->flashMessenger()->addMessage('');               
-               // return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin);                
-               return new ViewModel($valores); 
+                return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin);                                
           }// Fin try casth   
           catch (\Exception $e) {
 	    if ($connection instanceof \Zend\Db\Adapter\Driver\ConnectionInterface) {
