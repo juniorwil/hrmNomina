@@ -17,6 +17,8 @@ use Nomina\Model\Entity\NominaE;       // Tabla n_nomina_e_d
 use Nomina\Model\Entity\NominaE2;      // Table n_nomina_e
 use Principal\Model\Gnominag;          // Consultas generacion de nomina
 
+use Principal\Model\LogFunc; // Funciones especiales
+
 class NominaController extends AbstractActionController
 {
     public function indexAction()
@@ -167,7 +169,8 @@ class NominaController extends AbstractActionController
                                        from t_sedes a 
                                         inner join n_cencostos b on b.idSed=a.id
                                         order by a.nombre , b.nombre"),                                     
-        "lin"       =>  $this->lin
+        "lin"      =>  $this->lin,
+        'url'      => $this->getRequest()->getBaseUrl(),
       );                
       return new ViewModel($valores);
       
@@ -307,6 +310,20 @@ class NominaController extends AbstractActionController
       $u=new Gnominag($this->dbAdapter);
       $n=new NominaFunc($this->dbAdapter);      
       // --      
+      if($this->getRequest()->isPost()) // Si es por busqueda
+      {
+          $request = $this->getRequest();
+          if ($request->isPost()) {
+             $data = $this->request->getPost();        
+             $datos = $d->getGeneral1("select a.id, a.idEmp  
+                                          from n_nomina_e a
+                                           inner join a_empleados b on b.id = a.idEmp
+                                           where b.CedEmp='".$data->cedula."' and a.idNom=".$data->id);              
+             $id = $datos['id'];
+             return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin.'in/'.$id);
+           }
+      }      
+
       // Conceptos
       $arreglo='';
       $datos = $d->getConnom(); 
@@ -318,9 +335,17 @@ class NominaController extends AbstractActionController
       // 
       $datos = $d->getGeneral1("Select idInom from n_nomina_e_d where idInom=".$id); 
       $idn   = $datos['idInom'];
-      $datos = $d->getGeneral1("Select idEmp,idNom from n_nomina_e where id=".$id); 
-      $ide   = $datos['idEmp'];
-      $idnp  = $datos['idNom'];
+      // BUscar datos del empleado y de la cabecera de la nomina
+      $datos = $d->getGeneral1("Select a.idEmp, a.idNom, b.fechaI, b.fechaF, b.idTnom, b.idGrupo, b.idCal 
+                                  from n_nomina_e a 
+                                  inner join n_nomina b on b.id = a.idNom
+                                  where a.id=".$id); 
+      $ide    = $datos['idEmp'];
+      $idnp   = $datos['idNom'];
+      $fechaI = $datos['fechaI'];      
+      $fechaF = $datos['fechaF'];      
+      $idCal  = $datos['idCal'];      
+      $idGrupo = $datos['idGrupo'];      
 
       // Buscar constantes de funciones
       $valores=array
@@ -328,8 +353,9 @@ class NominaController extends AbstractActionController
         "titulo"    =>  "Novedades",
         "form"      =>  $form,
         "ttablas"   =>  'CONCEPTOS, HORAS ,DEVENGADOS, DEDUCIDOS, CENTROS DE COSTOS,  ELIMINAR ',  
-        "datos"     =>  $d->getGeneral("select a.id ,a.nombre,a.apellido,a.idCcos,b.id as idInom,b.idNom, b.dias from a_empleados a
-inner join n_nomina_e b on a.id=b.idEmp where a.id=".$ide." and b.idNom=".$idnp),            
+        "datos"     =>  $d->getGeneral("select a.id ,a.nombre,a.apellido,a.idCcos,b.id as idInom,b.idNom, b.dias 
+                             from a_empleados a
+                             inner join n_nomina_e b on a.id=b.idEmp where a.id=".$ide." and b.idNom=".$idnp),            
         'url'       => $this->getRequest()->getBaseUrl(),  
         "datccos"   =>  $d->getCencos(),
         "lin"       =>  $this->lin.'i',
@@ -356,6 +382,22 @@ inner join n_nomina_e b on a.id=b.idEmp where a.id=".$ide." and b.idNom=".$idnp)
       $idn = $data->idInom; // Es importante para cuando no sea valido un formulario abajo mantenga el id actual             
       $tipoA = $data->tipo;
 
+      $t = new LogFunc($this->dbAdapter);
+      $dt = $t->getDatLog();
+
+
+      // BUscar datos del empleado y de la cabecera de la nomina
+      $datos = $d->getGeneral1("Select a.idEmp, a.idNom, b.fechaI, b.fechaF, b.idTnom, b.idGrupo, b.idCal 
+                                  from n_nomina_e a 
+                                  inner join n_nomina b on b.id = a.idNom 
+                                  where a.id=".$idn); 
+      $ide    = $datos['idEmp'];
+      $idnp   = $datos['idNom'];
+      $fechaI = $datos['fechaI'];      
+      $fechaF = $datos['fechaF'];      
+      $idCal  = $datos['idCal'];      
+      $idGrupo = $datos['idGrupo'];      
+
       // INICIO DE TRANSACCIONES
       $connection = null;
       try 
@@ -364,33 +406,55 @@ inner join n_nomina_e b on a.id=b.idEmp where a.id=".$ide." and b.idNom=".$idnp)
           $connection->beginTransaction();                
 
           // Nueva novedad
-          if ($tipoA==1)
+          if ($tipoA==0)
           {                             
               $datos = $d->getGeneral1("Select valor,tipo from n_conceptos where id=".$data->idConc); 
               $valcon = $datos['valor'];
               $tipcon = $datos['tipo'];
-              $e->actRegistro($data,$valcon,$tipcon);                    
+              $e->actRegistro($data,$valcon,$tipcon);
+              // Guardar registro 
+              //$d->modGeneral("delete from n_nomina_nov where idEmp=".$ide." and diasLab>0 and estado=0");                    
+              $dev = $data->valor;$ded = 0;
+              if ( $tipcon == 2 ) 
+              {
+                  $ded = $data->valor;$dev = 0;
+              } 
+              $hor=0;
+              if ( $valcon == 1 ) // Concepto por horas o cantidad
+              {
+                  $ded = 0;$dev = 0;
+                  $hor = $data->valor;
+              } 
+              $d->modGeneral("delete from n_nomina_nov where idEmp=".$ide." and idGrupo=".$idGrupo."
+                and fechaI='".$fechaI."' and fechaF='".$fechaF."' and idConc=".$data->idConc);
+              $d->modGeneral("insert into n_nomina_nov (idEmp, fechaI, fechaF, idCal, idGrupo, idConc, devengado, deducido, horas, idUsu ) 
+                              values(".$ide.", '".$fechaI."','".$fechaF."', ".$idCal.", ".$idGrupo.",".$data->idConc.",".$dev.",".$ded.",".$hor.", ".$dt['idUsu']." )");              
           }     
           // Cambio valores (hora,dev,ded,ccos)
-          if ( ($tipoA==2) or ($tipoA==3) or ($tipoA==4) )
+          if ( ($tipoA==1) )
           { 
-              $e->edRegistro($data);                    
+              //$e->edRegistro($data);                    
+              $d->modGeneral("update n_nomina_e_d set devengado=".$data->dev.",
+                 deducido=".$data->ded.", horas=".$data->hora.",idUsuM=".$dt['idUsu']." where id=".$data->idNov); 
+
+              if ( $data->idCpres>0 ) // Guardar en tabla de registro de modificacion en prestamos
+              {
+                 $d->modGeneral("update n_nomina_pres set estado=1
+                  where idEmp=".$ide." and idCal=".$idCal." and fechaI='".$fechaI."' and fechaF='".$fechaF."'
+                     and idGrupo=".$idGrupo." and idPres=".$data->idCpres); // Inactivar cambio anterior en prestamo 
+
+                 $d->modGeneral("insert into n_nomina_pres (idEmp, idCal, fechaI, fechaF, idGrupo, idPres, valor, idUsu ) 
+                 values(".$ide.", ".$idCal.", '".$fechaI."','".$fechaF."', ".$idGrupo.", ".$data->idCpres.", ".$data->ded.",".$dt['idUsu']." )");
+               }
           }           
-          // Eliminar registro
-          if ( $tipoA==5 ) 
-          { 
-              $e->delRegistro($idn);                    
-          }                 
-          // Cambio de hora
+          // Cambio de horas de trabajo representados en dias
           if ( $tipoA==6 ) 
           { 
-              $f->actRegistro($data);                    
-          }                       
+             $f->actRegistro($data);                    
+          }                                 
       
           if ($request->isPost())
           {
-              if ($tipoA>0)
-              {
                    // *-------------------------------------------------------------------------------
                    // ----------- RECALCULO DE DOCUMENTO DE NOMINA -----------------------------------
                    // *-------------------------------------------------------------------------------
@@ -424,14 +488,14 @@ inner join n_nomina_e b on a.id=b.idEmp where a.id=".$ide." and b.idNom=".$idnp)
                         // Llamado de funion -------------------------------------------------------------------
                         $n->getNomina($id, $iddn, $idin, $ide ,$diasLab,$diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 1, 2,$dev,$ded,$idfor,$diasLabC,0,0,0,0);                                                       
                     }
-                    // Guardar dias laborador en novedades
-                    $datNom = $d->getGeneral1("select idCal, idGrupo from n_nomina where id =".$id);
+                    if ( $tipoA==6 ) // Solo se crea registro de novedades para la hora
+                    {
+                        // Guardar dias laborador en novedades
+                        $d->modGeneral("delete from n_nomina_nov where idEmp=".$ide." and diasLab>0 and estado=0");                    
+                        $d->modGeneral("insert into n_nomina_nov (idEmp, fechaI, fechaF, idCal, idGrupo, diasLab ) 
+                                  values(".$ide.", '".$fechaI."','".$fechaF."', ".$idCal.", ".$idGrupo.", ".$diasLab." )");
+                    }
 
-                    $d->modGeneral("delete from n_nomina_nov where idEmp=".$ide." and diasLab>0");
-                    
-                    $d->modGeneral("insert into n_nomina_nov (idEmp, idCal, idGrupo, diasLab ) 
-                                  values(".$ide.", ".$datNom['idCal'].", ".$datNom['idGrupo'].", ".$diasLab." )");
-              }
            }
            //$n->getRecalculo($idn);                  
       
@@ -451,13 +515,18 @@ inner join n_nomina_e b on a.id=b.idEmp where a.id=".$ide." and b.idNom=".$idnp)
       $valores=array
       (
         "formn"     => $form,
-        "ttablas"   =>  'CONCEPTOS, HORAS ,DEVENGADOS, DEDUCIDOS, CENTROS DE COSTOS, ELIMINAR ',  
+        "ttablas"   =>  'CONCEPTO, HORAS ,DEVENGADO, DEDUCIDO, CENTROS DE COSTO ',  
         'url'       => $this->getRequest()->getBaseUrl(),  
         "datNau"    =>  $u->getDocNove($idn," and b.tipo = 0 and d.info = 0"),// Novedades 
         "datTau"    =>  $u->getDocNove($idn," and b.tipo in ('1','2')"),// Automaticos
         "datCau"    =>  $u->getDocNove($idn," and b.tipo = 3"),// Calculados
         "datOau"    =>  $u->getDocNove($idn," and b.tipo = 4"),// Programados
         "datIau"    =>  $u->getDocNove($idn," and b.tipo = 0 and d.info = 1"),// Novedades informativas
+        "datNauN"   =>  $u->getDocNoveN($idn," and b.tipo = 0 and d.info = 0"),// Numero de novedades -----------------------------         
+        "datTauN"   =>  $u->getDocNoveN($idn," and b.tipo in ('1','2')"),// Automaticos
+        "datCauN"   =>  $u->getDocNoveN($idn," and b.tipo = 3"),// Calculados
+        "datOauN"   =>  $u->getDocNoveN($idn," and b.tipo = 4"),// Programados        
+        "datIauN"   =>  $u->getDocNoveN($idn," and b.tipo = 0 and d.info = 1"),// Novedades informativas
         "datcon"    =>  $d->getConnom(),
         "datccos"   =>  $d->getCencos(),
         "lin"       =>  $this->lin.'i', 
@@ -482,7 +551,7 @@ inner join n_nomina_e b on a.id=b.idEmp where a.id=".$ide." and b.idNom=".$idnp)
             $connection = null;
             try {
                $connection = $this->dbAdapter->getDriver()->getConnection();
-   	       $connection->beginTransaction();            
+   	           $connection->beginTransaction();            
              
                 // Borrar registro de prima de antiguedad si lo hubiera
                 $u->modGeneral("delete from n_pg_primas_ant where idInom=".$id);            
@@ -493,7 +562,6 @@ inner join n_nomina_e b on a.id=b.idEmp where a.id=".$ide." and b.idNom=".$idnp)
                 // *-------------------------------------------------------------------------------
                  // ----------- RECALCULO DE DOCUMENTO DE NOMINA -----------------------------------
                 // *-------------------------------------------------------------------------------
-
                
                 $idn = $datos['idInom'];
                 $datos2 = $u->getDocNove($idn, " and b.tipo in ('0','1','3')" );// Insertar nov automaticas ( n_nomina_e_d ) por tipos de automaticos                                                  
@@ -518,6 +586,7 @@ inner join n_nomina_e b on a.id=b.idEmp where a.id=".$ide." and b.idNom=".$idnp)
                 }                            
                // FIN TRANSACCION 
                $connection->commit();
+               return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin.'in/'.$datos['idInom']);
             }// Fin try casth   
             catch (\Exception $e) {
     	        if ($connection instanceof \Zend\Db\Adapter\Driver\ConnectionInterface) {
@@ -527,7 +596,7 @@ inner join n_nomina_e b on a.id=b.idEmp where a.id=".$ide." and b.idNom=".$idnp)
  	        /* Other error handling */
             }// FIN TRANSACCION                                    
             
-            return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin.'in/'.$datos['idInom']);
+            
           }          
    }// Fin eliminar datos   
    

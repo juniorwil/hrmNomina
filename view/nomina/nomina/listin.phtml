@@ -78,8 +78,8 @@ var parametros = {
     "idNom"   : idnom,
     "idInom"  : idinom,
     "idCcos"  : idccos,
-    "idNov"   : 0,     
-    "tipo"    : 0,    
+    "idNov"   : 0, // Para que no ingrese a ningunas opciones    
+    "tipo"    : -5,    
 }; 
 $.ajax({
  data:  parametros,     
@@ -105,7 +105,7 @@ $('#submitbutton').click(function(){
     "idInom"  : idinom,
     "idCcos"  : idccos,
     "idNov"   : 0,     
-    "tipo"    : 1
+    "tipo"    : 0
   };      
   $.ajax({
      data:  parametros,     

@@ -8,20 +8,20 @@ $formLabel = $this->plugin('formLabel');
 <div class="tabbable">
   <ul class="nav nav-tabs padding-12 tab-color-blue background-blue" id="myTab4">
 	<li class="active">
-	    <a data-toggle="tab" href="#nove">Novedades</a>
+	    <a data-toggle="tab" href="#nove">Novedades <?php if ($datNauN['num']>0) echo '('.$datNauN['num'].')'; ?></a>
 	</li>
 	<li>
-	    <a data-toggle="tab" href="#auto">Automaticos</a>
+	    <a data-toggle="tab" href="#auto">Automaticos <?php if ($datTauN['num']>0) echo '('.$datTauN['num'].')'; ?></a>
 	</li>
 
 	<li>
-	   <a data-toggle="tab" href="#calculo">Calculados</a>
+	   <a data-toggle="tab" href="#calculo">Calculados <?php if ($datCauN['num']>0) echo '('.$datCauN['num'].')'; ?></a>
 	</li>
 	<li>
-	   <a data-toggle="tab" href="#otros">Programados</a>
+	   <a data-toggle="tab" href="#otros">Programados <?php if ($datOauN['num']>0) echo '('.$datOauN['num'].')'; ?></a>
 	</li>        
 	<li>
-	   <a data-toggle="tab" href="#info">Informativas</a>
+	   <a data-toggle="tab" href="#info">Informativas <?php if ($datIauN['num']>0) echo '('.$datIauN['num'].')'; ?></a>
 	</li>                
   </ul> 
     
@@ -38,7 +38,12 @@ foreach ($this->datccos as $datcc){
 ?>
 <div class="tab-content">    
       <div id="nove" class="tab-pane in active"><!-- Novedades -->   
-  <?php echo $this->render('layout/tabla_cF') ?>
+  <?php 
+
+   $ttablas = 'CONCEPTO, HORA ,DEVENGADO, DEDUCIDO, CENTRO DE COSTO ';
+   $this->ttablas = 'CONCEPTO, HORA ,DEVENGADO, DEDUCIDO, CENTRO DE COSTO, EDITAR,ELIMINAR ';
+      
+   echo $this->render('layout/tabla_cF'); $this->ttablas = $ttablas; ?>
     <?php
     // Recorrer valores del documento        
     foreach ($this->datNau as $dato){
@@ -120,6 +125,11 @@ foreach ($this->datccos as $datcc){
                                                    ->setAttribute("id", "cc".$dato["id"]) ));
             ?></div>  </td>                                    
             <td>
+                 <a href="javascript:editarN(<?php echo $dato["id"]; ?>);" class="blue" id="nov">
+                     <i class="ace-icon fa fa-pencil bigger-130"></i>
+                 </a>
+            </td>     
+            <td>  
                 <a href="<?php echo $this->basePath() ?><?php echo $this->lin?>d/<?php echo $dato["id"]?>"> <?php echo $this->render('layout/ieliminar') ?> </a>
             </td>                        
         </tr>
@@ -191,8 +201,6 @@ foreach ($this->datccos as $datcc){
             $this->formRow($formn->get('idCencosS')->setValueOptions($arreglo));             
             echo ($this->formRow($formn->get('idCencosS')->setAttribute("value", $dato["idCcos"])->setAttribute("id", "cc_".$dato["id"])->setAttribute("disabled", true) ));            
             ?></td>                                    
-            <td>                
-            </td>                        
         </tr>
     <?php 
     }?>
@@ -268,8 +276,6 @@ foreach ($this->datccos as $datcc){
             $this->formRow($formn->get('idCencosS')->setValueOptions($arreglo));             
             echo ($this->formRow($formn->get('idCencosS')->setAttribute("value", $dato["idCcos"])->setAttribute("id", "cc_".$dato["id"])->setAttribute("disabled", true) ));            
             ?></td>                                    
-            <td>                
-            </td>                        
         </tr>
     <?php 
     }?>
@@ -284,7 +290,12 @@ foreach ($this->datccos as $datcc){
 
      <div id="otros" class="tab-pane"><!-- Programados -->
 
-   <?php echo $this->render('layout/tabla_c') ?>
+   <?php 
+   $ttablas = 'CONCEPTO, HORA ,DEVENGADO, DEDUCIDO, CENTRO DE COSTO ';
+   $this->ttablas = 'CONCEPTO, HORA ,DEVENGADO, DEDUCIDO, SALDO, CENTROS DE COSTO, EDITAR ';
+   echo $this->render('layout/tabla_c');
+   $this->ttablas = $ttablas;
+    ?>
     <?php
     // Recorrer valores del documento        
     foreach ($this->datOau as $dato){
@@ -332,17 +343,29 @@ foreach ($this->datccos as $datcc){
             // Deducidos
             if ($natura==2)
             {            
-               echo number_format($deducido);
+                echo ($this->formRow($formn->get('deducido')
+                                   ->setAttribute("value", $deducido )
+                                   ->setAttribute("name", "dedP_".$dato["id"]) 
+                                   ->setAttribute("id", "dedP_".$dato["id"])                                    
+                                   ->setAttribute("size", 20 ) ));                      
             }else
             {
                 echo 0;
             }
             ?></td>          
             <td><?php 
+               echo number_format($dato['saldoPact']);
+            ?></td>                      
+            <td><?php 
             $this->formRow($formn->get('idCencosS')->setValueOptions($arreglo));             
-            echo ($this->formRow($formn->get('idCencosS')->setAttribute("value", $dato["idCcos"])->setAttribute("id", "cc_".$dato["id"])->setAttribute("disabled", true) ));            
+            echo ($this->formRow($formn->get('idCencosS')->setAttribute("value", $dato["idCcos"])
+                                                         ->setAttribute("id", "ccP_".$dato["id"])
+                                                         ->setAttribute("disabled", true) ));            
             ?></td>               
-            <td>                
+            <td>      
+                 <a href="javascript:editarP(<?php echo $dato["id"]; ?>,<?php echo $dato["idCpres"]; ?>);" class="blue" id="nov">
+                     <i class="ace-icon fa fa-pencil bigger-130"></i>
+                 </a>                      
             </td>                        
         </tr>
     <?php 
@@ -459,36 +482,42 @@ foreach ($this->datccos as $datcc){
         ?></td>                                
         </tr>    
 </table>
+
+<hr />
     
 <script>
-$(function (){
-// Variables
-var valor   = $("#hora").val();
-var idconc  = $("#idConc").val();
-var idnom   = $("#idNom").val(); // ID nomina
-var idinom  = $("#idInom").val(); // ID nomina_e
-var idccos  = $("#idCcos").val(); // ID nomina_e 
-
-$('.hora').focusout(function(){  
-  var idnov = $(this).attr('id');
-  var ha  = $("#"+idnov).val();
-  // Quitar caracteres especiales y sacar solo el numero del id
-  var d = idnov.indexOf('_');
-  var idnov = idnov.substring(d+1, 10);    
-  var haa = $("#ho"+idnov).val();
-
-  if (ha!=haa)
-      {
-        // Cargar documento de novedades para recalculo y otras
+// Moficicacion en registro de novedades 
+function editarN(id){  
+   var idnom   = $("#idNom").val(); // ID nomina
+   var idinom  = $("#idInom").val(); // ID nomina_e  
+   var dev  = 0;
+   if ($("#dev_"+id).length){  
+      var dev = $("#dev_"+id).val();
+   }
+   var ded  = 0;
+   if ($("#ded_"+id).length){  
+      var ded = $("#ded_"+id).val();
+   }
+   var hora  = 0;
+   if ($("#hor_"+id).length){  
+      var hora = $("#hor_"+id).val();
+   }   
+   var cc  = 0;
+   if ($("#cc_"+id).length){  
+      var cc = $("#cc_"+id).val();
+   }   
         var parametros = {
-            "idConc"  : idconc,
             "idNom"   : idnom,
             "idInom"  : idinom,
-            "idCcos"  : idccos,    
-            "idNov"   : idnov,     
-            "tipo"    : 2,            
-            "valor"   : ha,
+            "idNov"   : id, 
+            "dev"     : dev,
+            "ded"     : ded,
+            "hora"    : hora,
+            "idCcos"  : cc,    
+            "idCpres" : 0,  
+            "tipo"    : 1,  // Para modificaciones          
         }; 
+   
         $.ajax({
            data:  parametros,     
            type:  'post',
@@ -499,83 +528,50 @@ $('.hora').focusout(function(){
            success:  function (response) {
               $("#resultado").html(response);                    
              }
-        }); // Fin ajax     
+        }); // Fin ajax        
+};
+
+
+// Moficicacion en registro de programados
+function editarP(id, idCpres){  
+   var idnom   = $("#idNom").val(); // ID nomina
+   var idinom  = $("#idInom").val(); // ID nomina_e  
+   var dev  = 0;
+
+   var ded  = 0;
+   if ($("#dedP_"+id).length){  
+      var ded = $("#dedP_"+id).val();
+   }
+   var hora  = 0;
+
+   var cc  = 0;
+   if ($("#ccP_"+id).length){  
+      var cc = $("#ccP_"+id).val();
+   }   
    
-     }// Fin valdiar que sean horas diferentes para actualizar  
-  }); // Validar focus de la HORA   
-
-
-$('.devengados').focusout(function(){  
-  var idnov = $(this).attr('id');
-  var ha  = $("#"+idnov).val();
-  // Quitar caracteres especiales y sacar solo el numero del id
-  var d = idnov.indexOf('_');
-  var idnov = idnov.substring(d+1, 10);  
-  var haa = $("#dv"+idnov).val();  
-  
-  if (ha!=haa)
-      {
-        // Cargar documento de novedades para recalculo y otras
         var parametros = {
-            "idConc"  : idconc,
             "idNom"   : idnom,
             "idInom"  : idinom,
-            "idCcos"  : idccos,    
-            "idNov"   : idnov,     
-            "tipo"    : 3,
-            "valor"   : ha ,            
+            "idNov"   : id, 
+            "dev"     : dev,
+            "ded"     : ded,
+            "hora"    : hora,            
+            "idCcos"  : cc,    
+            "idCpres" : idCpres,  
+            "tipo"    : 1,  // Para modificaciones          
         }; 
+   
         $.ajax({
            data:  parametros,     
            type:  'post',
            url:   '<?php echo $this->basePath() ?><?php echo $this->lin?>nov',
            beforeSend: function () {
-              $("#resultado").html('<h3 class="header smaller lighter grey"><i class="icon-spinner icon-spin orange bigger-125"></i></h3>Por favor espere...');
+              $("#resultado").html('<h3 class="header smaller lighter grey"><i class="icon-spinner icon-spin orange bigger-125"></i></h3>Recalculando por favor espere...');
              },
            success:  function (response) {
-              $("#resultado").html(response); 
+              $("#resultado").html(response);                    
              }
-        }); // Fin ajax     
-   
-     }// Fin valdiar que sean horas diferentes para actualizar  
-  }) // Validar focus de la DEVENGADOS
-
-$('.deducidos').focusout(function(){  
-  var idnov = $(this).attr('id');
-  var ha  = $("#"+idnov).val();
-  // Quitar caracteres especiales y sacar solo el numero del id
-  var d = idnov.indexOf('_');
-  var idnov = idnov.substring(d+1, 10);  
-  var haa = $("#dd"+idnov).val();  
-  
-  if (ha!=haa)
-      {
-        // Cargar documento de novedades para recalculo y otras
-        var parametros = {
-            "idConc"  : idconc,
-            "idNom"   : idnom,
-            "idInom"  : idinom,
-            "idCcos"  : idccos,    
-            "idNov"   : idnov,     
-            "tipo"    : 4,
-            "valor"   : ha ,            
-        }; 
-        $.ajax({
-           data:  parametros,     
-           type:  'post',
-           url:   '<?php echo $this->basePath() ?><?php echo $this->lin?>nov',
-           beforeSend: function () {
-              $("#resultado").html('<h3 class="header smaller lighter grey"><i class="icon-spinner icon-spin orange bigger-125"></i></h3>Por favor espere...');
-             },
-           success:  function (response) {
-              $("#resultado").html(response); 
-             }
-        }); // Fin ajax     
-   
-     }// Fin valdiar que sean horas diferentes para actualizar  
-  }) // Validar focus de la DEDUCIDO
-
-
- })
+        }); // Fin ajax        
+};
 </script>
  

@@ -139,7 +139,8 @@ class GnominaController extends AbstractActionController
                    $g->getGenerarP($data->tipo, $data->idGrupo, $idCal);                                       
                 
                    // Verificar en movimiento del calendario
-                   $datos2 = $d->getGeneral1("select fechaI, fechaF from n_tip_calendario_d 
+                   $datos2 = $d->getGeneral1("select fechaI, fechaF 
+                                            from n_tip_calendario_d 
                                             where idTnom = ".$data->tipo." and idGrupo=".$data->idGrupo." 
                                             and estado=0 order by fechaI limit 1");           
                    $fechaI = $datos2['fechaI'];// se toma la fecha de movimiento de calendario reemplazando la fecha de inicio                     
@@ -320,7 +321,8 @@ class GnominaController extends AbstractActionController
 
                     // VALIDAR SI TIENE DIAS DIFERENTES EN UNA NOMINA YA LIQUIDAD                
                     $datIng = $d->getGeneral("Select diasLab, idEmp  
-                      from n_nomina_nov where diasLab > 0 and idCal = ".$idCal." and idGrupo=".$idGrupo);        
+                      from n_nomina_nov 
+                      where diasLab > 0 and fechaI='".$fechaI."' and fechaF='".$fechaF."' and idCal = ".$idCal." and idGrupo=".$idGrupo." and estado=0");        
                     foreach($datIng as $dat)
                     {
                         $idEmp = $dat['idEmp'] ;                   
@@ -621,6 +623,33 @@ class GnominaController extends AbstractActionController
              // Llamado de funcion -------------------------------------------------------------------
              $n->getNomina($id, $iddn, $idin, $ide ,$diasLab, $diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 0,$dev,$ded,$idfor,$diasLabC,0,$calc,$conVac,$obId);              
          } // FIN REGISTRO DE NOVEDADES                     
+
+         // ( REGISTRO DE NOVEDADES ) ( n_nomina_nove ) Guardadas en las novedades anteriores
+         $datos2 = $g->getRnovedades($id,$fechaI,$fechaF);// Insertar nov automaticas ( n_nomina_e_d ) por tipos de automaticos                              
+
+         foreach ($datos2 as $dato)
+         {             
+             $iddn    = $dato['id'];  // Id dcumento de novedad
+             $idin    = 0;     // Id novedad
+             $ide     = $dato['idEmp'];   // Id empleado
+             $diasLab = $dato['dias'];    // Dias laborados
+             $diasVac = 0;    // Dias vacaciones
+             $horas   = $dato["horas"];   // Horas laborados 
+             $formula = $dato["formula"]; // Formula
+             $tipo    = $dato["tipo"];    // Devengado o Deducido  
+             $idCcos  = $dato["idCcos"];  // Centro de costo   
+             $idCon   = $dato["idCon"];   // Concepto
+             $dev     = $dato["dev"];     // Devengado
+             $ded     = $dato["ded"];     // Deducido
+             $idfor   = $dato["idFor"];   // Id de la formula 
+             $diasLabC= 0;   // Determinar si la afecta los dias laborados para convertir las horas laboradas
+             $calc    = $dato["calc"];   // Instruccion para calcular o no calcular
+             $conVac  = 0;   // Determinar si en caso de vacaciones formular con dias calendario
+             $obId    = 0; // 1 para obtener el id insertado
+             // Si es calculado en la novedad, debe permaneces su valor con los parametros del momento, sueldo, conf h extras ,ect
+             // Llamado de funcion -------------------------------------------------------------------
+             ///$n->getNomina($id, $iddn, $idin, $ide ,$diasLab, $diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 0,$dev,$ded,$idfor,$diasLabC,0,$calc,$conVac,$obId);              
+         } // FIN REGISTRO DE NOVEDADES                              
          
          // PRIMA DE ANTIGUEDAD
          $datos = $d->getPrimaAnt();
@@ -924,7 +953,7 @@ class GnominaController extends AbstractActionController
              {
                 $valor = $ded;$ded=0;
              }
-             $formula = '($diasLab+$diasVac)*'.$valor; // Concatenan para armar la formula
+             $formula = ' ($diasLab+$diasVac+$diasInca)*'.$valor; // Concatenan para armar la formula
              //echo 'ifo  '.$formula;
              // Llamado de funion -------------------------------------------------------------------
              $idInom = $n->getNomina($id, $iddn, $idin, $ide ,$diasLab,$diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 2,$dev,$ded,$idfor,$diasLabC,0,0,$conVac,$obId);              
@@ -993,6 +1022,10 @@ class GnominaController extends AbstractActionController
                 $conVac  = 0;   // Determinar si en caso de vacaciones formular con dias calendario
                 $obId    = 1; // 1 para obtener el id insertado
                 $nitTer  = $dato['nitTer']; 
+                // Validar si hay una cuota modificada en la nomina activa
+                if ( $dato['valorPresN'] > 0 )
+                   $ded     = $dato["valorPresN"];// Deducido         
+
                 // Llamado de funcion -------------------------------------------------------------------
                 $idInom = $n->getNomina($id, $iddn, $idin, $ide ,$diasLab,$diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 4,$dev,$ded,$idfor,$diasLabC,$idCpres,1,$conVac,$obId);                                           
                 $idInom = (int) $idInom;                   

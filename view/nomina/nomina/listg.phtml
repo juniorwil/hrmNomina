@@ -1,9 +1,11 @@
 <?php echo $this->render('layout/titulo') ?>
 <?php echo $this->render('layout/treview') ?>
-<?php    
-    $name = $form->get('id');
-    echo $this->formInput($name);    
-?>  
+
+<?php
+$form = $this->form;
+$form->prepare();
+?>
+
 <?php 
 /////// SEDES /////////
 $arbol   = '';
@@ -73,7 +75,38 @@ function beforeClick(treeId, treeNode, clickFlag) {
 }                
 </script>
 
+<?php
+$form->setAttributes(array(
+    'action' => $this->url.$this->lin.'in',
+    'method' => 'post',
 
+));
+// Get the form label plugin
+$formLabel = $this->plugin('formLabel');
+// Abriendo etiqueta del formulario
+echo $this->form()->openTag($form);
+?>
+
+<?php    
+    $name = $form->get('id');
+    echo $this->formInput($name);    
+?>  
+
+<div class="row">
+  <div class="col-sm-2">Buscar por la cedula:<br />              
+   <?php
+    $name = $form->get('cedula');
+    echo $this->formInput($name);
+    echo $this->formElementErrors($name);
+   ?>
+  </div>
+  <div class="col-sm-2"><br />              
+    <?php echo $this->formElement($form->get('buscar')) ?>
+  </div>
+</div>   
+
+<?php echo $this->form()->closeTag() ?>    
+<div class="row">
 <TABLE border=0 height=600px align=left>
  <TR>
   <TD width=360px align=left valign=top style="BORDER-RIGHT: #999999 1px dashed">
@@ -85,5 +118,5 @@ function beforeClick(treeId, treeNode, clickFlag) {
   <TD width=770px align=left valign=top><IFRAME ID="testIframe" Name="testIframe" FRAMEBORDER=0 SCROLLING=AUTO width=100%  height=600px ></IFRAME></TD> 
  </TR>
 </TABLE>
-
+</div>
 <?php echo $this->render('layout/iregresar') ?> 
