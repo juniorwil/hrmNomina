@@ -18,6 +18,8 @@ use Principal\Form\FormPres;        // Componentes especiales para los prestamos
 
 use Principal\Model\Pgenerales; // Parametros generales
 
+use Principal\Model\LogFunc; // Funciones especiales
+
 
 class VacacionesController extends AbstractActionController
 {
@@ -108,15 +110,53 @@ class VacacionesController extends AbstractActionController
               $datos = $u->getRegistroId($data->id);
               $form->get("fecDoc")->setAttribute("value",$datos['fechaI']);                
             }
+            // Crear libro de vacaciones para cada empleado
+            $datVac =  $d->getGeneral("select a.id, year(a.fecIng) as ano, month(a.fecIng) as mes,
+                              day(a.fecIng) as dia, year(now()) as anoAct
+                              , year(b.fechaI) as anoC, month(b.fechaI) as mesC, # Datos del contrato activo
+                              day(b.fechaI) as diaC  
+                              from a_empleados a 
+                               inner join n_emp_contratos b on b.idEmp = a.id 
+                                 where a.id =  ".$data->idEmp);
+            foreach( $datVac as $datV)
+            {
+                $anoS = $datV['ano'];
+                if ( $datV['anoC'] > 0 ) 
+                   $anoS = $datV['anoC'];
+
+                while( $anoS <= $datV['anoAct'] )
+                {  
+                   
+                   $mes = $datV['mes']; 
+                   $dia = $datV['dia'];  
+                   if ( $datV['anoC'] > 0 ) 
+                      {
+                         $mes = $datV['mesC'];
+                         $dia = $datV['diaC'];
+                      } 
+
+                   // Crear periodo de vacaciones
+                   $fechaI = $anoS.'-'.$mes.'-'.$dia;
+                   $fechaF = ($anoS+1).'-'.$mes.'-'.$dia;
+
+                   $datVacI =  $d->getGeneral1("select count(id) as num
+                              from n_libvacaciones where idEmp = ".$data->idEmp." and fechaI='".$fechaI."' and fechaF='".$fechaF."'");                   
+                   if ( $datVacI['num']==0 ) 
+                       $d->modGeneral("insert into n_libvacaciones (idEmp, fechaI,fechaF) values(".$datV['id'].",'".$fechaI."','".$fechaF."')");
+
+                   $anoS = $anoS + 1;   
+                }  
+            } 
             $valores=array
             (
               "titulo"  => $this->tfor,
               "form"    => $form,
               'url'     => $this->getRequest()->getBaseUrl(),           
               "lin"     => $this->lin,
-              "ttablas" => "Empleado, Fecha inicial, Fecha final, días pagados, Días Pendientes, Días solicitados",
+              "ttablas" => "Empleado, Fecha inicial, Fecha final, días pagados, Días Pendientes, Días solicitados, Reportar",
               "datos"   => $d->getGeneral("select a.*,b.CedEmp, b.nombre, b.apellido, 
-                           case when c.dias is null then 0 else c.dias end as dias from n_libvacaciones a inner join a_empleados b 
+                           case when c.dias is null then 0 else c.dias end as dias 
+                           from n_libvacaciones a inner join a_empleados b 
                            on b.id=a.idEmp 
                            left join n_vacaciones_p c on c.idPvac=a.id 
                            left join n_vacaciones d on d.id=c.idVac 
@@ -311,6 +351,8 @@ class VacacionesController extends AbstractActionController
             // Periodos de vacaciones
             $u    = new VacacionesP($this->dbAdapter);
             $i=0;
+
+            $d->modGeneral("delete from n_vacaciones_p where idVac=".$id);       
             while ($i < count($data->idPer))
             {
                 if ($data->diasP[$i]>0)
@@ -323,7 +365,7 @@ class VacacionesController extends AbstractActionController
          }
       }   
       $view = new ViewModel();        
-      $this->layout('layout/blanco'); // Layout del login
+      $this->layout('layout/blancoB'); // Layout del login
       return $view;       
    }
    
@@ -361,9 +403,30 @@ class VacacionesController extends AbstractActionController
                    echo $e;
  	      }	
  	            /* Other error handling */
-           }// FIN TRANSACCION                                                               
-            
-        
+           }// FIN TRANSACCION                                                              
+                    
     } // Fin listar registros         
    
+   // Reportar periodo como pagado
+   public function listperAction() 
+   { 
+      $form = new Formulario("form");             
+      $this->dbAdapter=$this->getServiceLocator()->get('Zend\Db\Adapter');
+      $d=new AlbumTable($this->dbAdapter);
+      $t = new LogFunc($this->dbAdapter);
+      $dt = $t->getDatLog();
+
+      if($this->getRequest()->isPost()) // Actualizar 
+      {
+        $request = $this->getRequest();
+        if ($request->isPost()) {
+            $data = $this->request->getPost();
+            $d->modGeneral("update n_libvacaciones set estado=1, diasP=15, idUsuP=".$dt['idUsu']." where id = ".$data->id);       
+         }
+      }   
+      $view = new ViewModel();        
+      $this->layout('layout/blancoB'); // Layout del login
+      return $view;       
+   }
+
 }

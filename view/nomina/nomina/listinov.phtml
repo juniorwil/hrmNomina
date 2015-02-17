@@ -371,10 +371,31 @@ foreach ($this->datccos as $datcc){
     <?php 
     }?>
   <?php echo $this->render('layout/tabla_p') ?>                                             
-                    
-         
-     </div><!-- Fin programados -->          
-     
+<?php
+$this->rss='MODIFICACIONES EN REGISTRO DE PROGRAMADOS';
+ echo $this->render('layout/rss'); ?><hr />
+
+<?php 
+   $this->ttablasRSS = 'FECHA, CONCEPTO ,CUOTA FIJA, CUOTA APLICADA, USUARIO ';      
+   echo $this->render('layout/tabla_crss');  ?>
+
+   <?php  foreach ($this->datPresM as $dato){ ?>
+    <tr>
+      <td><i class="fa fa-flag red bigger-130"></i><?php echo $dato['fecha'] ?></td> 
+      <td><?php echo $dato['nomTpres'] ?></td> 
+      <td><small>
+          <s class="red">$ <?php echo number_format($dato['valorCuota']) ?></s>
+        </small></td> 
+      <td> <b class="green">$ <?php echo number_format($dato['valor']) ?></b></td> 
+      <td><?php echo $dato['usuario'] ?></td> 
+    </tr>
+   <?php } ?>
+<?php echo $this->render('layout/tabla_rss') ?>
+
+
+</div><!-- FIN PROGRAMADOS-->
+                        
+    
 
       <div id="info" class="tab-pane in active"><!-- Novedades informativas-->   
   <?php echo $this->render('layout/tabla_cF') ?>

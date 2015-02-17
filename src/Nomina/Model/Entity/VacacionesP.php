@@ -40,7 +40,7 @@ class VacacionesP extends TableGateway
     
     public function actRegistro($idPvac, $dias, $idVac)
     {
-       $this->delRegistro($idVac); 
+      // $this->delRegistro($idVac); 
        
        $datos=array
        (

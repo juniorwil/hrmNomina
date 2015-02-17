@@ -26,15 +26,30 @@ echo $this->form()->openTag($form);
 
 <?php echo $this->render('layout/tabla_c') ?>
 
-    <?php foreach ($this->datos as $dato){ ?>
+    <?php
+    $datos = $this->datos ;
+    if ( $escala == 0  ) // No maneja escala salarial, si no sueldos fijos
+       $datos = $this->datosE ;
+     $i = 1;
+     foreach ($datos as $dato){
+       if ( $escala == 0  ) // No maneja escala salarial, si no sueldos fijos 
+       {
+          $idI = $i;}
+       else
+          $idI = $dato['id']; 
+      ?>
         <tr>
-            <td><?php echo $dato["codigo"] ?></td>
+            <td><?php
+             if ( $escala == 1  ) // No maneja escala salarial, si no sueldos fijos 
+                echo $dato["codigo"];
+             else
+                echo $i; $i++; ?></td>
             <td>                
                <?php                 
                   $name = $form->get('numero')->setAttribute("value",$dato["salario"])
                                  ->setAttribute("class","numero")
-                                 ->setAttribute("id",'sa'.$dato['id']) 
-                                 ->setAttribute("name",'sa'.$dato['id']) 
+                                 ->setAttribute("id",'sa'.$idI) 
+                                 ->setAttribute("name",'sa'.$idI) 
                                  ->setAttribute("readonly",true);            
                   echo $this->formInput($name);
                   echo $this->formElementErrors($name);     
@@ -43,18 +58,23 @@ echo $this->form()->openTag($form);
             <td>
                <?php            
                  $name = $form->get('diasVac')->setAttribute("value",0)
-                                 ->setAttribute("id",  $dato['id'])
-                                 ->setAttribute("name", $dato['id']);
+                                 ->setAttribute("id",  $idI)
+                                 ->setAttribute("name", "por".$idI);
                  echo $this->formInput($name);
                  echo $this->formElementErrors($name);            
+                 if ( $dato["porInc"]>0 )
+                     echo $dato["porInc"].' %';
                ?>                
             </td>            
             <td>
-               <?php                 
-                  $name = $form->get('diasVacP')->setAttribute("value",0)
-                                 ->setAttribute("id",'nsa'.$dato['id']) 
-                                 ->setAttribute("id",'nsa'.$dato['id']) 
-                                 ->setAttribute("readonly",true);            
+               <?php 
+                  $valor = 0;                
+                  if ( $dato["salarioNue"] > 0 )
+                     $valor = $dato["salarioNue"];                                 
+
+                  $name = $form->get('diasVacP')->setAttribute("value",$valor)
+                                 ->setAttribute("id",'nsa'.$idI) 
+                                 ->setAttribute("name",'nsa'.$idI);            
                   echo $this->formInput($name);
                   echo $this->formElementErrors($name);     
                ?>                                

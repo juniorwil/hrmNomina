@@ -24,7 +24,7 @@ class IncapacidadController extends AbstractActionController
     private $lin  = "/nomina/incapacidad/list"; // Variable lin de acceso  0 (C)
     private $tlis = "Incapacidades de empleados"; // Titulo listado
     private $tfor = "Documento de incapacidad"; // Titulo formulario
-    private $ttab = "Fecha,Fec apro.,Empleado,Cargo,Centro de costos,Tipo,Desde, Hasta,Estado, Pdf  ,Editar,Eliminar"; // Titulo de las columnas de la tabla
+    private $ttab = "id, Fecha,Fec apro.,Empleado,Cargo,Centro de costos,Tipo,Desde, Hasta,Estado, Pdf  ,Editar,Eliminar"; // Titulo de las columnas de la tabla
 
     // Listado de registros ********************************************************************************************
     public function listAction()

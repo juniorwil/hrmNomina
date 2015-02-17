@@ -30,16 +30,35 @@ $formLabel = $this->plugin('formLabel');
     echo $this->formInput($name);
     echo $this->formElementErrors($name);     
             ?></td>
-            <td> <?php            
+            <td> 
+        <div id='valor<?php echo $dato["id"] ?>'>
+            <?php            
             $name = $form->get('diasVac')->setAttribute("value",$dato['dias'])
                                  ->setAttribute("id",$dato['id']);
             $fecha = $dato['fechaI'];
             $dias = $dias + $dato['dias'] ;
-    echo $this->formInput($name);
-    echo $this->formElementErrors($name);            
-    ?>                
-                
+            echo $this->formInput($name);
+            echo $this->formElementErrors($name);            
+         ?>                
+       </div>         
             </td>
+            <td>
+            <div id='chulo<?php echo $dato["id"] ?>'>
+              <?php
+                 // Reportar vacaciones pagadas 
+                 $select = $form->get('check1')->setAttribute("name", "ch".$dato["id"])
+                                             ->setAttribute("id", "ch".$dato["id"]) 
+                                             ->setAttribute("class", "reportar") ;
+                 echo $this->formCheckbox($select); 
+              ?>
+             </div>             
+               <div id='oculto<?php echo $dato["id"] ?>' style="display:none;">
+                  <?php echo $this->formElement( $form->get('confirmar')->setAttribute("name", "c".$dato["id"])
+                                                                       ->setAttribute("id", "c".$dato["id"]) 
+                                                                       ->setAttribute("class", "btn-purple") );   
+                 ?>
+              </div>
+            </td>            
         </tr>
     <?php 
     $diasP=$diasP+15;
@@ -195,7 +214,47 @@ $formLabel = $this->plugin('formLabel');
         }
      });
    }); // Ttal recorrido
+   // MARCAR PERIODO PARA REPORTAR VACACIONES YA PAGADAS
+   $('.reportar').click(function(){   
+        var id     = $(this).attr('id') ;   
+        var n = id.split("h"); // Extraer numeros del id 
+        var idReal = n[1] ;
+
+        if ( $("#"+idReal).val() == 0 ){         
+          $("#"+idReal).val( 15 );        
+          $("#"+idReal).prop('disabled', true);
+          $("#oculto"+idReal).show();
+        }else{
+          $("#"+idReal).val( 0 );        
+          $("#"+idReal).prop('disabled', false);
+          $("#oculto"+idReal).hide();          
+        }
+    });         
+   // COMFIRMAR PERIODO PARA REPORTAR VACACIONES YA PAGADAS
+   $('.btn-purple').click(function(){   
+        var id     = $(this).attr('id') ;   
+        var n = id.split("c"); // Extraer numeros del id 
+        var idReal = n[1] ;
+
+        var parametros = {
+            "id"   : idReal,
+            "dias" : 15,
+        }; 
    
+        $.ajax({
+           data:  parametros,     
+           type:  'post',
+           url:   '<?php echo $this->basePath() ?><?php echo $this->lin?>per',
+           success:  function (response) {
+              //$("#resultado").html(response);                    
+              alert("Registro actualizado de forma correcta ! "); 
+              $("#oculto"+idReal).hide();
+              $("#chulo"+idReal).hide();
+              $("#valor"+idReal).hide();
+           }
+        }); // Fin ajax        
+
+    });            
  })
 </script> 
      

@@ -28,10 +28,8 @@ echo $this->render('layout/inuevo') ?></a>
              <?php } ?>                              
             </td>  
             <td>
-             <?php if ($dato["tipo"]==0) // Impresion de nomina
-                {     
+             <?php
                   $this->idR = 6; // Id del reporte
-                }
                 $this->idP = $dato["id"];
                 echo $this->render('layout/ipdf'); // Fin parametros 
              ?>                              

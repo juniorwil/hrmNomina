@@ -32,7 +32,7 @@ class Asalarial extends TableGateway
        return $datos->toArray();
     }
     
-    public function actRegistro($data=array())
+    public function actRegistro( $data=array() , $escala )
     {
        self::cargaAtributos($data);
        // Datos de transaccion
@@ -42,7 +42,9 @@ class Asalarial extends TableGateway
        $datos=array
        (
            'fecDoc'  => $dt['fecSis'],
-           'estado'  => $this->estado
+           'estado'  => $this->estado,
+           'escala'  => $escala, // 0 no manjea escala, 1 si maneja escala 
+           'idUsu'   => $dt['idUsu'],           
         );
        if ($this->id==0)
        {
@@ -50,7 +52,8 @@ class Asalarial extends TableGateway
          $inserted_id = $this->lastInsertValue;  
          return $inserted_id;              
        }else{
-         $this->update(array('id' => $this->id));               
+         $this->update(array('id' => $this->id));  
+         return 0;             
        }
 
     }

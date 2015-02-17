@@ -192,7 +192,8 @@ class GnominaController extends AbstractActionController
                     $g->getNominaE($id,$idg, $idEmp);  // Generacion de empleados  
                     
                     // Insertar incapacidades empleados 
-                    $g->getIncapaEmp($id);
+                    $g->getIncapaEmp($id, "n_incapacidades"); // Incapacidades
+                    $g->getIncapaEmp($id, "n_incapacidades_pro"); // Prorrogra en incapacidades
                     
                     // VALIDAR FECHA DE INGRESO DEL EMPLEADO                    
                     $datIng = $d->getGeneral("Select a.id, ( DATEDIFF( b.fechaF, c.fecIng ) +1 ) as diasH 
@@ -276,7 +277,7 @@ class GnominaController extends AbstractActionController
                         $diasEnt = $dat['diasEnt'];						
                         $diasAp  = $dat['diasAp'];
                         $diasDp  = $dat['diasDp'];						
-                        echo ' g '.$datGen['incAtrasada'].'<br />';
+                        //echo ' g '.$datGen['incAtrasada'].'<br />';
                         // Verificar si esta parametrizado para pagar los dias de incapacida o solo reportarlos
                         if ( $datGen['incAtrasada']==0)
                            $diasAp  = 0;
@@ -292,7 +293,13 @@ class GnominaController extends AbstractActionController
                         if ( $diasI > 15)
                              $diasI = 0; 
 
-  			                $dias = $dias - $diasI;		  						                                
+                        $dias = $dias - $diasI;                                                    
+                        // Empanada para cubrir retornos de vacaciones e incapaciades de mas o son 15 dias exactos de incapacidad
+                        if (  ( $diasAp + $diasDp )==15 )
+                        {
+                            $diasI = 15; 
+                            $dias = 0; 
+                        }  			                
                         $d->modGeneral("update n_nomina_e set dias=".$dias.", diasI=".$diasI." where id=".$iddn);
 						            # Se marca idInc con una 1 para saber que ese empleado tiene incapacidad registrada 
                                                     
@@ -322,7 +329,7 @@ class GnominaController extends AbstractActionController
                     // VALIDAR SI TIENE DIAS DIFERENTES EN UNA NOMINA YA LIQUIDAD                
                     $datIng = $d->getGeneral("Select diasLab, idEmp  
                       from n_nomina_nov 
-                      where diasLab > 0 and fechaI='".$fechaI."' and fechaF='".$fechaF."' and idCal = ".$idCal." and idGrupo=".$idGrupo." and estado=0");        
+                      where idConc = 0 and fechaI='".$fechaI."' and fechaF='".$fechaF."' and idCal = ".$idCal." and idGrupo=".$idGrupo." and estado=0");        
                     foreach($datIng as $dat)
                     {
                         $idEmp = $dat['idEmp'] ;                   
@@ -593,7 +600,7 @@ class GnominaController extends AbstractActionController
      $connection = null;
      try {
          $connection = $this->dbAdapter->getDriver()->getConnection();
-		$connection->beginTransaction();
+	      	$connection->beginTransaction();
 
         if ($sw==1) 
         {
@@ -701,7 +708,7 @@ class GnominaController extends AbstractActionController
         // INCAPACIDADES
         $datos2 = $g->getIncapNom($id);// ( n_nomina_e_i ) 
         foreach ($datos2 as $dato)
-         {             
+        {             
              $iddn    = $dato['id'];  // Id dcumento de novedad
              $idin    = 0;     // Id novedad
              $ide     = $dato['idEmp'];   // Id empleado
@@ -720,20 +727,57 @@ class GnominaController extends AbstractActionController
              $obId    = 1; // 1 para obtener el id insertado
              // Convertir a horas
              if ( $dato["tipInc"] == 1 )// Empresa
-			 {
-			 	$horas   = $dato["diasEmp"] * 8; 
-			 }
+			       {
+			 	         $horas   = $dato["diasEmp"] * 8; 
+			       }
              if ( $dato["tipInc"] == 2 )// Entidad esps u otra
-			 {
-			 	$horas   = $dato["diasEnt"] * 8;
-			 }             
+			       {
+			 	         $horas   = $dato["diasEnt"] * 8;
+			       }             
              // Llamado de funion -------------------------------------------------------------------
              if ($horas>0)
              {
-               $idInom = $n->getNomina($id, $iddn, $idin, $ide ,$diasLab, $diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 0,$dev,$ded,$idfor,$diasLabC,0,0,$conVac,$obId); 
-			   $idInom = (int) $idInom;
-			   $d->modGeneral("update n_nomina_e_d set idInc = ".$dato['idInc']." where id=".$idInom);      
-			                
+                $idInom = $n->getNomina($id, $iddn, $idin, $ide ,$diasLab, $diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 0,$dev,$ded,$idfor,$diasLabC,0,0,$conVac,$obId); 
+			          $idInom = (int) $idInom;
+			          $d->modGeneral("update n_nomina_e_d set idInc = ".$dato['idInc']." where id=".$idInom);      			                
+             }
+         } // FIN INCAPACIDADES 
+
+        // INCAPACIDADES PRO
+        $datos2 = $g->getIncaPpNom($id);// ( n_nomina_e_i ) 
+        foreach ($datos2 as $dato)
+        {             
+             $iddn    = $dato['id'];  // Id dcumento de novedad
+             $idin    = 0;     // Id novedad
+             $ide     = $dato['idEmp'];   // Id empleado
+             $diasLab = $dato['dias'];    // Dias laborados 
+             $diasVac = 0;    // Dias vacaciones
+             $horas   = 0;   // Horas laborados 
+             $formula = $dato["formula"]; // Formula
+             $tipo    = $dato["tipo"];    // Devengado o Deducido  
+             $idCcos  = $dato["idCcos"];  // Centro de costo   
+             $idCon   = $dato["idCon"];   // Concepto
+             $dev     = 0;     // Devengado
+             $ded     = 0;     // Deducido         
+             $idfor   = $dato["idFor"];   // Id de la formula    
+             $diasLabC= 0;   // Dias laborados solo para calculados 
+             $conVac  = 0;   // Determinar si en caso de vacaciones formular con dias calendario
+             $obId    = 1; // 1 para obtener el id insertado
+             // Convertir a horas
+             if ( $dato["tipInc"] == 1 )// Empresa
+             {
+                 $horas   = $dato["diasEmp"] * 8; 
+             }
+             if ( $dato["tipInc"] == 2 )// Entidad esps u otra
+             {
+                 $horas   = $dato["diasEnt"] * 8;
+             }             
+             // Llamado de funion -------------------------------------------------------------------
+             if ($horas>0)
+             {
+                $idInom = $n->getNomina($id, $iddn, $idin, $ide ,$diasLab, $diasVac ,$horas ,$formula ,$tipo ,$idCcos , $idCon, 0, 0,$dev,$ded,$idfor,$diasLabC,0,0,$conVac,$obId); 
+                $idInom = (int) $idInom;
+                $d->modGeneral("update n_nomina_e_d set idInc = ".$dato['idInc']." where id=".$idInom);                           
              }
          } // FIN INCAPACIDADES 
 

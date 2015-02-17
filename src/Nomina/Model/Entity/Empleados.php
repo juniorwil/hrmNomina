@@ -138,6 +138,7 @@ class Empleados extends TableGateway
            "idSal"    => $data['idSalario'],    
            "idRies"    => $data['idTar'],    
            "sueldo"    => $sueldo,    
+           "fecIng"    => $data['fecIng'],    
         );
        if ($id==0) // Nuevo registro
           $this->insert($datos);

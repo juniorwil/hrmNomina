@@ -32,14 +32,23 @@ class AsalarialD extends TableGateway
        $t = new LogFunc($this->adapter);
        $dt = $t->getDatLog();              
                
+       //$datos=array
+       //(
+         //  'idAsal'      => $idAsal,
+        //   'idEsal'      => $idEsal,
+         //  'salarioAct'  => str_replace( array(",",".") , "",$sal), 
+          // 'porInc'      => $por,
+          // 'salarioNue'  => str_replace( array(",",".") , "",$salA),           
+        //);
+
        $datos=array
        (
            'idAsal'      => $idAsal,
            'idEsal'      => $idEsal,
-           'salarioAct'  => str_replace( array(",",".") , "",$sal), 
+           'salarioAct'  => $sal, 
            'porInc'      => $por,
-           'salarioNue'  => str_replace( array(",",".") , "",$salA),           
-        );
+           'salarioNue'  => $salA ,           
+        );       
         
         $this->insert($datos);
         $inserted_id = $this->lastInsertValue;  

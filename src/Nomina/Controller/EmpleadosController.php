@@ -310,6 +310,7 @@ class EmpleadosController extends AbstractActionController
                 {
                     $connection = $this->dbAdapter->getDriver()->getConnection();
                     $connection->beginTransaction();                                        
+                    echo $data->fecIng ;
                     $u->actRegistro($data, $sueldo); // Actualizar datos del empleado
                     // Transferir archivos 
                     $File    = $this->params()->fromFiles('image-file');
@@ -376,7 +377,7 @@ class EmpleadosController extends AbstractActionController
             // Contractuales            
             $form->get("tipo")->setAttribute("value",$datos['IdTcon']);                              
             $form->get("fecIng")->setAttribute("value",$datos['fecIng']);                              
-            $form->get("fecPvac")->setAttribute("value",$datos['fecUlVac']);                              
+            //$form->get("fecPvac")->setAttribute("value",$datos['fecUlVac']);                              
             $form->get("idTemp")->setAttribute("value",$datos['idTemp']);                              
             
             // Clasificaciones
@@ -538,7 +539,7 @@ class EmpleadosController extends AbstractActionController
             $this->dbAdapter=$this->getServiceLocator()->get('Zend\Db\Adapter');
             $d = new AlbumTable($this->dbAdapter);// ------------------------------------------------- 3 FUNCION DENTRO DEL MODELO (C)  
             //print_r($data);    
-            $d->getGeneral1("delete from n_emp_contratos where idEmp = ".$data->id );
+            $d->modGeneral("delete from n_emp_contratos where idEmp = ".$data->id );
             $d->modGeneral("insert into n_emp_contratos ( idEmp, fechaI, fechaF ) values(".$data->id.",'".$data->fechaIniCon."','".$data->fechaFinCon."' )" );
 
             return $this->redirect()->toUrl($this->getRequest()->getBaseUrl().$this->lin."a/".$data->id);

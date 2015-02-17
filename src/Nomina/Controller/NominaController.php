@@ -442,9 +442,9 @@ class NominaController extends AbstractActionController
                  $d->modGeneral("update n_nomina_pres set estado=1
                   where idEmp=".$ide." and idCal=".$idCal." and fechaI='".$fechaI."' and fechaF='".$fechaF."'
                      and idGrupo=".$idGrupo." and idPres=".$data->idCpres); // Inactivar cambio anterior en prestamo 
-
-                 $d->modGeneral("insert into n_nomina_pres (idEmp, idCal, fechaI, fechaF, idGrupo, idPres, valor, idUsu ) 
-                 values(".$ide.", ".$idCal.", '".$fechaI."','".$fechaF."', ".$idGrupo.", ".$data->idCpres.", ".$data->ded.",".$dt['idUsu']." )");
+                 $datPres = $d->getGeneral1("select valCuota from n_prestamos_tn where id=".$data->idCpres);
+                 $d->modGeneral("insert into n_nomina_pres (idEmp, idCal, fechaI, fechaF, idGrupo, idPres, valorCuota, valor, idUsu ) 
+                 values(".$ide.", ".$idCal.", '".$fechaI."','".$fechaF."', ".$idGrupo.", ".$data->idCpres.", ".$datPres['valCuota']." ,".$data->ded.",".$dt['idUsu']." )");
                }
           }           
           // Cambio de horas de trabajo representados en dias
@@ -527,6 +527,14 @@ class NominaController extends AbstractActionController
         "datCauN"   =>  $u->getDocNoveN($idn," and b.tipo = 3"),// Calculados
         "datOauN"   =>  $u->getDocNoveN($idn," and b.tipo = 4"),// Programados        
         "datIauN"   =>  $u->getDocNoveN($idn," and b.tipo = 0 and d.info = 1"),// Novedades informativas
+        "datPresM"  =>  $d->getGeneral("select a.*, d.nombre as nomTpres, e.usuario    
+                                         from n_nomina_pres a 
+                                          inner join n_prestamos_tn b on b.id = a.idPres
+                                          inner join n_prestamos c on c.id = b.idPres
+                                          inner join n_tip_prestamo d on d.id = c.idTpres
+                                          inner join users e on e.id = a.idUsu
+                                          where a.idEmp=".$ide." 
+                                          and a.fechaI='".$fechaI."' and a.fechaF='".$fechaF."' "),// Prestamos o programados modificados
         "datcon"    =>  $d->getConnom(),
         "datccos"   =>  $d->getCencos(),
         "lin"       =>  $this->lin.'i', 

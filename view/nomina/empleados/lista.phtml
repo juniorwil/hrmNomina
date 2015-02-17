@@ -238,6 +238,13 @@ echo $this->render('layout/h3rojo') ?>
     echo $this->formElementErrors($select);
 ?>                         
   </div>
+  <div class="col-sm-2">Tarifa ARL:<br />              
+   <?php
+    $select = $form->get('idTar');
+    echo $this->formSelect($select);
+    echo $this->formElementErrors($select);
+  ?>
+  </div>      
 </div>    
 </div><!-- FIN FONDOS -->    
 
@@ -317,13 +324,6 @@ echo $this->render('layout/h3rojo') ?>
     echo $this->formElementErrors($select);
   ?>
   </div>
-  <div class="col-sm-2">Tarifa ARL:<br />              
-   <?php
-    $select = $form->get('idTar');
-    echo $this->formSelect($select);
-    echo $this->formElementErrors($select);
-  ?>
-  </div>    
     
 </div>    
 <hr />
@@ -374,7 +374,8 @@ echo $this->render('layout/h3rojo') ?>
 <div class="row">    
 <div class="col-sm-2">
 <?php
-    $name = $form->get('fecIng')->setAttribute("readOnly",true);
+    $name = $form->get('fecIng');
+    //->setAttribute("readOnly",true)
     echo $formLabel->openTag().'Fecha inicio de labores';
     echo $formLabel->closeTag();
     echo $this->formInput($name);
@@ -384,21 +385,21 @@ echo $this->render('layout/h3rojo') ?>
 
     <div class="col-sm-2">
 <?php
-    $select = $form->get('fecPnom')->setAttribute("readOnly",true);
-    echo $formLabel->openTag().'Ultimo pago de nomina';
-    echo $formLabel->closeTag();
-    echo $this->formInput($name);
-    echo $this->formElementErrors($select);
+ //   $select = $form->get('fecPnom')->setAttribute("readOnly",true);
+ //   echo $formLabel->openTag().'Ultimo pago de nomina';
+ //   echo $formLabel->closeTag();
+ //   echo $this->formInput($name);
+ //   echo $this->formElementErrors($select);
 ?>
 </div>                                    
     
 <div class="col-sm-2">
 <?php
-    $select = $form->get('fecPvac')->setAttribute("readOnly",true);
-    echo $formLabel->openTag().'Ultimas vacaciones pagadas';
-    echo $formLabel->closeTag();
-    echo $this->formInput($name);
-    echo $this->formElementErrors($select);
+//    $select = $form->get('fecPvac')->setAttribute("readOnly",true);
+//    echo $formLabel->openTag().'Ultimas vacaciones pagadas';
+//    echo $formLabel->closeTag();
+ //   echo $this->formInput($name);
+//    echo $this->formElementErrors($select);
 ?>
 </div>                                            
 </div> 
@@ -925,6 +926,7 @@ echo $this->form()->openTag($form);
  <!-- VENTANA MODAL RENOVACION CONTRATO-->
 <div id="<?php
       $this->idModal = "agregarContrato";
+      $this->botModal = "Renovación de contrato";  
  echo 'v'.$this->idModal ?>" title="<?php echo $this->botModal ?>">    
 <?php
 $form->setAttributes(array(
@@ -957,10 +959,6 @@ echo $this->form()->openTag($form);
   ?>        
   </div>  
 </div>
-
-<div class="form-actions">    
-  <?php echo $this->formElement($form->get('send')) ?>
-</div>    
 
 <?php echo $this->form()->closeTag() ?>    
 

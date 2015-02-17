@@ -166,7 +166,7 @@ class PlanillaController extends AbstractActionController
             $connection = null;
             try {
                $connection = $this->dbAdapter->getDriver()->getConnection();
-   	       $connection->beginTransaction();
+   	           $connection->beginTransaction();
                // REGISTRO LIBRO DE CESANTIAS
                //$c->delRegistro($id); 
                // Borrar tablas inferiores               
@@ -229,7 +229,7 @@ class PlanillaController extends AbstractActionController
          $connection = null;
          try {
             $connection = $this->dbAdapter->getDriver()->getConnection();
-	 	$connection->beginTransaction();
+	 	        $connection->beginTransaction();
             $sw=1;
             if ($sw==1) 
             {
